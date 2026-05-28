@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Recherche participative sur le design inclusif dans le secteur de la santé — Projet Blackwell.">
+    <title>Secteur Santé | Étude & Design Inclusif</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ─────────────────────────────────────────────────────────
+           DESIGN TOKENS — Cyber-médical sobre
+           Palette : fond ardoise profond · blanc cassé · jade calme · ambre institutionnel
+        ───────────────────────────────────────────────────────── */
+        :root {
+            --bg:          #0D1117;
+            --bg2:         #131920;
+            --surface:     #1A2332;
+            --surface2:    #1F2B3E;
+            --surface3:    #243345;
+
+            --jade:        #2DD4A0;   /* accent primaire — jade médical */
+            --jade-dim:    rgba(45,212,160,0.10);
+            --jade-glow:   rgba(45,212,160,0.20);
+            --amber:       #F59E0B;   /* accent secondaire — chaleur institutionnelle */
+            --amber-dim:   rgba(245,158,11,0.12);
+
+            --text:        #E8EDF4;
+            --text-soft:   #9BAABB;
+            --text-muted:  #5A6A7E;
+            --border:      rgba(255,255,255,0.07);
+            --border-med:  rgba(255,255,255,0.12);
+
+            --font-display: 'DM Serif Display', Georgia, serif;
+            --font-body:    'DM Sans', system-ui, sans-serif;
+
+            --r-sm:  8px;
+            --r-md:  14px;
+            --r-lg:  20px;
+            --r-xl:  28px;
+
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-pop:  0 8px 40px rgba(0,0,0,0.55);
+        }
+
+        /* ── RESET ──────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-weight: 400;
+            line-height: 1.65;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 14px 60px;
+        }
+
+        /* Grid background subtil */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(45,212,160,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(45,212,160,0.025) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── SKIP LINK ──────────────────────────────────────────── */
+        .skip-link {
+            position: absolute; top: -100%; left: 0;
+            background: var(--jade); color: var(--bg);
+            padding: .5rem 1rem; font-weight: 600;
+            border-radius: 0 0 var(--r-sm) 0; z-index: 9999;
+            text-decoration: none; font-size: .85rem;
+        }
+        .skip-link:focus { top: 0; }
+
+        /* ── FOCUS ──────────────────────────────────────────────── */
+        :focus-visible { outline: 2px solid var(--jade); outline-offset: 3px; border-radius: var(--r-sm); }
+        :focus:not(:focus-visible) { outline: none; }
+
+        /* ── OUTER WRAPPER ──────────────────────────────────────── */
+        .outer {
+            width: 100%;
+            max-width: 560px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+        }
+
+        /* ── APP CARD ───────────────────────────────────────────── */
+        .app {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            border: 1px solid var(--border-med);
+            box-shadow: var(--shadow-pop), 0 0 0 1px rgba(45,212,160,0.06);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Bande de couleur top */
+        .app::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--jade), var(--amber), var(--jade));
+            background-size: 200% 100%;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .app-inner {
+            padding: 32px 28px 28px;
+            display: flex;
+            flex-direction: column;
+            min-height: 520px;
+        }
+
+        /* ── SCREENS ────────────────────────────────────────────── */
+        .screen { display: none; flex-direction: column; flex: 1; }
+        .screen.active {
+            display: flex;
+            animation: fadeUp .35s ease forwards;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN D'ACCUEIL
+        ══════════════════════════════════════════════════════════ */
+        #screen-welcome {
+            align-items: flex-start;
+            justify-content: center;
+            gap: 0;
+        }
+
+        .welcome-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--jade-dim);
+            border: 1px solid rgba(45,212,160,0.22);
+            color: var(--jade);
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 22px;
+        }
+        .welcome-eyebrow::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--jade);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .4; transform: scale(.7); }
+        }
+
+        .welcome-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 7vw, 2.8rem);
+            font-weight: 400;
+            line-height: 1.1;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -.01em;
+        }
+        .welcome-title em {
+            font-style: italic;
+            color: var(--jade);
+        }
+
+        .welcome-sub {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.65;
+            margin-bottom: 24px;
+            max-width: 420px;
+        }
+        .welcome-sub strong { color: var(--amber); font-weight: 500; }
+
+        .welcome-divider {
+            width: 36px; height: 2px;
+            background: linear-gradient(90deg, var(--jade), var(--amber));
+            border-radius: 2px;
+            margin-bottom: 28px;
+        }
+
+        .profile-prompt {
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .profile-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Boutons profil */
+        .btn-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            padding: 16px 18px;
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: .95rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-profile::after {
+            content: '→';
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%) translateX(4px);
+            color: var(--text-muted);
+            transition: transform .2s, color .2s;
+            font-size: 1rem;
+        }
+        .btn-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        }
+        .btn-profile:hover::after {
+            transform: translateY(-50%) translateX(0);
+            color: var(--jade);
+        }
+        .btn-profile:active { transform: translateY(0) scale(.99); }
+
+        .btn-pro:hover     { border-color: var(--jade); background: rgba(45,212,160,0.07); }
+        .btn-student:hover { border-color: var(--amber); background: rgba(245,158,11,0.07); }
+        .btn-patient:hover { border-color: #a78bfa; background: rgba(167,139,250,0.07); }
+
+        .bp-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface3);
+            border-radius: var(--r-sm);
+        }
+        .btn-pro .bp-icon     { background: var(--jade-dim); }
+        .btn-student .bp-icon { background: var(--amber-dim); }
+        .btn-patient .bp-icon { background: rgba(167,139,250,0.12); }
+
+        .bp-text { display: flex; flex-direction: column; gap: 1px; }
+        .bp-title { font-weight: 600; font-size: .95rem; }
+        .bp-sub   { font-size: .75rem; color: var(--text-muted); }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN QUESTIONNAIRE PAS-À-PAS
+        ══════════════════════════════════════════════════════════ */
+        #screen-survey {
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .survey-header { display: flex; flex-direction: column; gap: 8px; }
+
+        .survey-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .step-counter {
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .step-profile-tag {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--jade-dim);
+            color: var(--jade);
+            border: 1px solid rgba(45,212,160,.2);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jade), var(--amber));
+            border-radius: 99px;
+            transition: width .4s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* Question */
+        .survey-body { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+
+        .question-num {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: var(--jade);
+        }
+
+        .question-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.1rem, 3.5vw, 1.3rem);
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.45;
+        }
+
+        /* ── Inputs ─────────────────────────────────────────────── */
+        select, textarea, input[type="number"] {
+            width: 100%;
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 14px 16px;
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: .95rem;
+            font-weight: 400;
+            transition: border-color .2s, box-shadow .2s;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6A7E' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 42px;
+        }
+        select option { background: var(--surface2); color: var(--text); }
+        textarea { height: 120px; resize: none; line-height: 1.6; }
+        input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+        select:focus, textarea:focus, input:focus {
+            border-color: var(--jade);
+            box-shadow: 0 0 0 3px var(--jade-dim);
+        }
+
+        /* ── Radio ──────────────────────────────────────────────── */
+        .radio-group { display: flex; flex-direction: column; gap: 8px; }
+        .radio-group.inline { flex-direction: row; flex-wrap: wrap; }
+
+        .radio-item {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 13px 16px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: border-color .2s, background .2s;
+            flex: 1; min-width: 100px;
+        }
+        .radio-item:hover { border-color: var(--jade); background: var(--jade-dim); }
+        .radio-item input[type="radio"] {
+            accent-color: var(--jade);
+            width: 16px; height: 16px;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .radio-item:has(input:checked) {
+            border-color: var(--jade);
+            background: var(--jade-dim);
+        }
+        .radio-item:has(input:checked) span { color: var(--jade); font-weight: 600; }
+
+        /* ── Slider ─────────────────────────────────────────────── */
+        .slider-wrap {
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 18px 16px 14px;
+        }
+        .slider-lbls {
+            display: flex; justify-content: space-between;
+            font-size: .72rem; color: var(--text-muted);
+            margin-bottom: 10px; letter-spacing: .04em;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--jade);
+            cursor: pointer;
+            height: 6px;
+        }
+        .slider-val {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--jade);
+            margin-top: 8px;
+            line-height: 1;
+        }
+
+        /* ── Navigation ─────────────────────────────────────────── */
+        .nav-row {
+            display: flex;
+            gap: 10px;
+            padding-top: 4px;
+        }
+
+        .btn-nav {
+            flex: 1;
+            padding: 15px;
+            border-radius: var(--r-md);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: .95rem;
+            cursor: pointer;
+            border: none;
+            transition: all .2s;
+        }
+        .btn-nav:active { transform: scale(.98); }
+
+        .btn-back {
+            background: rgba(255,255,255,.06);
+            color: var(--text-soft);
+            border: 1.5px solid var(--border-med);
+            flex: 0 0 auto;
+            padding: 15px 20px;
+        }
+        .btn-back:hover { background: rgba(255,255,255,.10); }
+
+        .btn-next {
+            background: var(--jade);
+            color: var(--bg);
+            font-weight: 700;
+        }
+        .btn-next:hover { background: #25c090; box-shadow: 0 4px 20px rgba(45,212,160,0.3); }
+        .btn-next:disabled {
+            background: var(--surface3);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN SUCCÈS
+        ══════════════════════════════════════════════════════════ */
+        #screen-success {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .success-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: var(--jade-dim);
+            border: 2px solid var(--jade);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            animation: ring-pop .5s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        @keyframes ring-pop {
+            0%   { transform: scale(.6); opacity: 0; }
+            60%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: var(--text);
+        }
+        .success-sub {
+            font-size: .9rem;
+            color: var(--text-soft);
+            line-height: 1.65;
+            max-width: 380px;
+        }
+        .success-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--text-muted);
+            border-left: 2px solid var(--jade);
+            padding-left: 14px;
+            text-align: left;
+            max-width: 360px;
+        }
+
+        .btn-restart {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--r-md);
+            background: transparent;
+            border: 1.5px solid var(--border-med);
+            color: var(--text-soft);
+            font-family: var(--font-body);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-restart:hover { background: rgba(255,255,255,.06); color: var(--text); }
+
+        /* ══════════════════════════════════════════════════════════
+           ADMIN PANEL
+        ══════════════════════════════════════════════════════════ */
+        #admin-panel {
+            background: #06080D;
+            border-radius: var(--r-xl);
+            border: 1px solid rgba(245,158,11,.25);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .admin-top {
+            display: flex; flex-wrap: wrap;
+            justify-content: space-between; align-items: flex-start;
+            gap: .75rem; margin-bottom: 18px;
+        }
+        .admin-top h3 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 400;
+            color: var(--text);
+        }
+        .admin-pill {
+            font-size: .68rem; font-weight: 700;
+            letter-spacing: .12em; text-transform: uppercase;
+            padding: 4px 10px; border-radius: 999px;
+            background: rgba(245,158,11,.12);
+            border: 1px solid rgba(245,158,11,.3);
+            color: var(--amber);
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px; margin-bottom: 18px;
+        }
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: .85rem .75rem;
+            text-align: center;
+        }
+        .stat-n { font-family: var(--font-display); font-size: 1.9rem; color: var(--jade); line-height: 1; }
+        .stat-l { font-size: .65rem; color: var(--text-muted); margin-top: .25rem; text-transform: uppercase; letter-spacing: .06em; }
+
+        .table-wrap { overflow-x: auto; border-radius: var(--r-sm); margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+        th {
+            background: rgba(45,212,160,.08);
+            color: var(--jade);
+            padding: 10px 12px;
+            text-align: left;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+            vertical-align: top;
+            max-width: 160px;
+            word-break: break-word;
+            font-size: .78rem;
+            color: var(--text-soft);
+        }
+        tr:hover td { background: rgba(45,212,160,.03); }
+
+        .admin-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn-adm {
+            background: transparent;
+            border: 1px solid rgba(45,212,160,.3);
+            color: var(--jade);
+            padding: 8px 16px;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: .8rem;
+            transition: all .2s;
+        }
+        .btn-adm:hover { background: var(--jade-dim); }
+        .btn-adm-danger {
+            border-color: rgba(239,68,68,.3);
+            color: #f87171;
+            margin-left: auto;
+        }
+        .btn-adm-danger:hover { background: rgba(239,68,68,.1); }
+
+
+        /* ── ÉCRAN SUCCÈS ENRICHI ───────────────────────────────── */
+        #screen-success {
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .success-hd {
+            text-align: center;
+            width: 100%;
+        }
+        .success-ring {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: var(--jade-dim);
+            border: 2px solid var(--jade);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 14px;
+            animation: ring-pop .5s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        @keyframes ring-pop {
+            0%   { transform: scale(.6); opacity: 0; }
+            60%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .success-sub {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.6;
+        }
+
+        .manifesto-block {
+            background: linear-gradient(135deg, rgba(45,212,160,0.06), rgba(245,158,11,0.06));
+            border-left: 3px solid var(--jade);
+            border-radius: 0 var(--r-md) var(--r-md) 0;
+            padding: 16px 18px;
+            font-size: .92rem;
+            line-height: 1.65;
+            color: var(--text);
+            width: 100%;
+        }
+        .manifesto-block strong { color: var(--jade); }
+
+        .edu-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .edu-card {
+            background: var(--surface2);
+            border: 1px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+        }
+        .edu-card-title {
+            font-size: .82rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .edu-card p {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.6;
+        }
+
+        .btn-restart {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--r-md);
+            background: transparent;
+            border: 1.5px solid var(--border-med);
+            color: var(--text-soft);
+            font-family: var(--font-body);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-restart:hover { background: rgba(255,255,255,.06); color: var(--text); }
+
+        /* ── UTILS ──────────────────────────────────────────────── */
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Aller au contenu principal</a>
+
+<div class="outer">
+
+    <!-- ══ APP CARD ════════════════════════════════════════════════ -->
+    <div class="app">
+        <div class="app-inner" id="main" role="main">
+
+            <!-- ══ ACCUEIL ════════════════════════════════════════ -->
+            <div id="screen-welcome" class="screen active" aria-labelledby="h-title">
+
+                <div class="welcome-eyebrow">Étude nationale · Design inclusif · 2026</div>
+
+                <h1 class="welcome-title" id="h-title">
+                    Secteur<br><em>Santé</em>
+                </h1>
+
+                <p class="welcome-sub">
+                    Cette grande étude lancée en 2026 interroge l'aménagement, l'ergonomie et le design des services de soins pour améliorer concrètement le quotidien des soignants, des étudiants et des patients.
+                </p>
+
+                <div class="welcome-divider" aria-hidden="true"></div>
+
+                <p class="profile-prompt">Quel est votre profil ?</p>
+
+                <div class="profile-btns" role="group" aria-label="Choisissez votre profil pour démarrer">
+                    <button class="btn-profile btn-pro" onclick="startSurvey('pro')">
+                        <span class="bp-icon" aria-hidden="true">🩺</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Professionnel·le de santé</span>
+                            <span class="bp-sub">Médecin, infirmier·ère, pharmacien·ne…</span>
+                        </span>
+                    </button>
+                    <button class="btn-profile btn-student" onclick="startSurvey('student')">
+                        <span class="bp-icon" aria-hidden="true">📚</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Étudiant·e en santé</span>
+                            <span class="bp-sub">Médecine, IFSI, Kiné, Pharmacie…</span>
+                        </span>
+                    </button>
+                    <button class="btn-profile btn-patient" onclick="startSurvey('patient')">
+                        <span class="bp-icon" aria-hidden="true">🤝</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Patient·e / Proche aidant·e</span>
+                            <span class="bp-sub">Toute personne en parcours de soin</span>
+                        </span>
+                    </button>
+                </div>
+
+            </div><!-- /screen-welcome -->
+
+            <!-- ══ QUESTIONNAIRE ══════════════════════════════════ -->
+            <div id="screen-survey" class="screen" aria-live="polite" aria-atomic="true">
+
+                <div class="survey-header">
+                    <div class="survey-meta">
+                        <span class="step-counter" id="step-counter" aria-live="polite"></span>
+                        <span class="step-profile-tag" id="step-profile-tag"></span>
+                    </div>
+                    <div class="progress-track"
+                        role="progressbar"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                        id="progress-wrap"
+                        aria-label="Progression du questionnaire">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="survey-body">
+                    <div id="question-box" tabindex="-1">
+                        <!-- injecté par JS -->
+                    </div>
+                </div>
+
+                <div class="nav-row">
+                    <button class="btn-nav btn-back" id="btn-back" onclick="prevStep()">
+                        ← Retour
+                    </button>
+                    <button class="btn-nav btn-next" id="btn-next" onclick="nextStep()">
+                        Suivant →
+                    </button>
+                </div>
+
+            </div><!-- /screen-survey -->
+
+            <!-- ══ SUCCÈS ENRICHI ══════════════════════════════════ -->
+            <div id="screen-success" class="screen" role="status" aria-live="polite" aria-atomic="true">
+
+                <div class="success-hd">
+                    <div class="success-ring" aria-hidden="true">✦</div>
+                    <p class="success-title">Transmission réussie</p>
+                    <p class="success-sub">Vos données ont été injectées anonymement<br>dans le protocole de recherche du Projet Blackwell.</p>
+                </div>
+
+                <div class="manifesto-block">
+                    <strong>Merci infiniment.</strong> À toutes celles et ceux qui ont choisi la voie de la santé, qui s'engagent au quotidien et prennent soin de milliers de personnes chaque jour : votre dévouement est le pilier de notre société. Ce projet a été conçu pour vous redonner la parole.
+                </div>
+
+                <div class="edu-cards" aria-label="Pour aller plus loin">
+                    <div class="edu-card">
+                        <p class="edu-card-title">🧬 Le Design d'Espace, c'est quoi ?</p>
+                        <p>Ce n'est pas seulement de la décoration. C'est l'étude scientifique et sensible de la manière dont l'architecture, la lumière, la signalétique et la disposition du mobilier impactent directement votre fatigue physique, votre stress et la fluidité des soins.</p>
+                    </div>
+                    <div class="edu-card">
+                        <p class="edu-card-title">🤝 Et le Design Inclusif ?</p>
+                        <p>C'est une philosophie de conception qui refuse de laisser quiconque de côté. En santé, cela signifie imaginer des environnements adaptés à la diversité humaine : de l'étudiant épuisé par ses gardes au patient en situation de handicap. Adapter le lieu à l'humain, et non l'inverse.</p>
+                    </div>
+                </div>
+
+                <button class="btn-restart" onclick="resetApp()">
+                    Relancer le questionnaire
+                </button>
+
+            </div>
+
+        </div><!-- /app-inner -->
+    </div><!-- /app -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         ESPACE CHERCHEUSE
+         Retiré physiquement du DOM en production (removeChild).
+         Visible uniquement via localhost / 127.0.0.1 / file://
+         ou le paramètre secret : ?mode=recherche-sante
+    ══════════════════════════════════════════════════════════ -->
+    <div id="admin-panel">
+        <div class="admin-top">
+            <div>
+                <h3>Espace Chercheuse — Données archivées</h3>
+                <span class="admin-pill" style="margin-top:8px;display:inline-flex;">🔒 Accès local uniquement</span>
+            </div>
+        </div>
+
+        <div class="admin-stats" aria-label="Statistiques de collecte">
+            <div class="stat"><div class="stat-n" id="stat-total">0</div><div class="stat-l">Total</div></div>
+            <div class="stat"><div class="stat-n" id="stat-pro">0</div><div class="stat-l">Pros</div></div>
+            <div class="stat"><div class="stat-n" id="stat-stud">0</div><div class="stat-l">Étudiant·es</div></div>
+            <div class="stat"><div class="stat-n" id="stat-pat">0</div><div class="stat-l">Patients</div></div>
+        </div>
+
+        <div class="table-wrap">
+            <table id="admin-table" aria-label="Tableau des réponses anonymes collectées">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Profil</th>
+                        <th scope="col">Métier / Cursus</th>
+                        <th scope="col">Aperçu</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-tbody">
+                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucune réponse pour l'instant.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="admin-acts">
+            <button class="btn-adm" onclick="exportCSV()">⬇ Exporter CSV</button>
+            <button class="btn-adm" onclick="exportJSON()">⬇ Exporter JSON</button>
+            <button class="btn-adm btn-adm-danger" onclick="clearData()">🗑 Vider</button>
+        </div>
+    </div><!-- /admin-panel -->
+
+</div><!-- /outer -->
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── 0. SÉCURITÉ ADMIN ──────────────────────────────────────────── */
+(function () {
+    const panel = document.getElementById('admin-panel');
+    if (!panel) return;
+    const loc = window.location;
+    const allowed =
+        loc.hostname === 'localhost'  ||
+        loc.hostname === '127.0.0.1' ||
+        loc.hostname === ''          ||
+        loc.protocol === 'file:'     ||
+        new URLSearchParams(loc.search).get('mode') === 'recherche-sante';
+    if (!allowed) panel.parentNode.removeChild(panel);
+    /* Si autorisé, on charge les données existantes immédiatement */
+    else renderAdmin();
+})();
+
+/* ── 1. BASE DE DONNÉES QUESTIONS ───────────────────────────────── */
+const DB = {
+
+    pro: [
+        { id:'cat',  type:'category', label:'Sélectionnez votre catégorie sectorielle',   required:true },
+        { id:'job',  type:'job',      label:'Quel est votre métier précis ?',              required:true },
+        { id:'q1',   type:'radio',    label:'Depuis combien de temps exercez-vous dans ce domaine ?',
+          options:['Moins de 2 ans','Entre 2 et 5 ans','Entre 5 et 10 ans','Plus de 10 ans'], inline:true },
+        { id:'q2',   type:'text',     label:'Pourquoi avez-vous choisi ce secteur de métier et cette voie ?' },
+        { id:'q3',   type:'number',   label:'Combien d\'heures travaillez-vous en moyenne par semaine ?' },
+        { id:'q4',   type:'slider',   label:'Votre temps de repos hebdomadaire est-il suffisant pour récupérer ?',
+          min:1, max:5, step:1, lblMin:'Insuffisant', lblMax:'Excellent' },
+        { id:'q5',   type:'radio',    label:'Arrivez-vous à conserver du temps pour vos activités personnelles ?',
+          options:['Oui, régulièrement','Difficilement','Non, jamais'], inline:false },
+        { id:'q6',   type:'text',     label:'L\'ergonomie de votre matériel de soin est-elle adaptée à votre pratique au quotidien ?' },
+        { id:'q7',   type:'radio',    label:'Comment évaluez-vous la fluidité des logiciels médicaux que vous utilisez ?',
+          options:['Très lourd / stressant','Moyen, perfectible','Fluide et ergonomique'], inline:false },
+        { id:'q8',   type:'text',     label:'Le design et l\'aménagement de vos espaces de travail réduisent-ils votre fatigue physique ?' },
+        { id:'q9',   type:'text',     label:'Comment vos proches et vos patients perçoivent-ils votre charge de travail ?' },
+        { id:'q10',  type:'text',     label:'Comment imaginez-vous l\'évolution de vos outils et espaces de soins dans 10, 20 ou 50 ans ?' }
+    ],
+
+    student: [
+        { id:'filiere', type:'select', label:'Sélectionnez votre filière d\'étude', required:true,
+          options:['','Médecine','Maïeutique / Sage-femme','Infirmier·ère (IFSI)','Kinésithérapie','Pharmacie','Chirurgie dentaire','Ergothérapie','Orthophonie','Psychomotricité','Aide-soignant·e (IFAS)','Réorientation / Reconversion','Autre cursus santé'] },
+        { id:'year', type:'select', label:'Quelle est votre année d\'étude ?', required:true,
+          options:['','PASS / LAS (1ère année)','Licence 2','Licence 3','Master 1 / Externe','Master 2 / Externe','Internat — Année 1','Internat — Année 2+','Prépa concours paramédicaux','Formation en alternance'] },
+        { id:'q1',  type:'radio',  label:'Travailles-tu à côté de tes études pour les financer ?',
+          options:['Non','Oui, parfois','Oui, régulièrement'], inline:true },
+        { id:'q2',  type:'text',   label:'En tant que futur·e acteur·rice de la santé, pourquoi as-tu choisi cette voie ?' },
+        { id:'q3',  type:'text',   label:'Comment vis-tu tes études et ton quotidien actuellement, et pourquoi ?' },
+        { id:'q4',  type:'number', label:'Combien d\'heures par semaine consacres-tu à tes études (cours + stages + révisions) ?' },
+        { id:'q5',  type:'slider', label:'Ton niveau de stress face aux concours et examens ?',
+          min:1, max:5, step:1, lblMin:'Serein·e', lblMax:'Épuisé·e' },
+        { id:'q6',  type:'text',   label:'Comment vis-tu la charge mentale lors de tes stages cliniques à l\'hôpital ?' },
+        { id:'q7',  type:'radio',  label:'L\'ergonomie de tes lieux d\'apprentissage est-elle adaptée à ton bien-être ?',
+          options:['Oui, bien conçus','Moyennement','Non, ils aggravent la fatigue'], inline:false },
+        { id:'q8',  type:'text',   label:'Comment le design des espaces et rythmes de cours pourrait-il soulager ton stress ?' },
+        { id:'q9',  type:'text',   label:'Quelles sont tes appréhensions concernant ton futur accès à l\'emploi ?' },
+        { id:'q10', type:'text',   label:'Comment imagines-tu le secteur de la santé et ton futur métier dans 10, 20 ou 50 ans ?' }
+    ],
+
+    patient: [
+        { id:'situation', type:'select', label:'Quelle est votre situation vis-à-vis du soin ?', required:true,
+          options:['','Patient·e chronique (suivi régulier)','Patient·e occasionnel·le','Proche aidant·e'] },
+        { id:'q1',  type:'text',  label:'En quelques mots, comment décririez-vous votre rapport au système de santé aujourd\'hui ?' },
+        { id:'q2',  type:'radio', label:'En moyenne, combien de temps attendez-vous avant votre consultation ?',
+          options:['Moins de 15 min','15 à 30 min','Plus de 30 min'], inline:true },
+        { id:'q3',  type:'radio', label:'La signalétique dans les établissements de santé vous semble-t-elle claire et accessible ?',
+          options:['Oui, très claire','Moyennement','Non, pas du tout'], inline:false },
+        { id:'q4',  type:'slider', label:'Confort des salles d\'attente que vous fréquentez ?',
+          min:1, max:5, step:1, lblMin:'Très anxiogène', lblMax:'Très apaisant' },
+        { id:'q5',  type:'radio', label:'Les outils de prise de rendez-vous en ligne sont-ils simples pour vous ?',
+          options:['Oui, parfaitement','Parfois complexes','Non, c\'est une barrière'], inline:false },
+        { id:'q6',  type:'radio', label:'Rencontrez-vous des difficultés à lire ou comprendre les ordonnances ?',
+          options:['Jamais','Parfois','Souvent'], inline:true },
+        { id:'q7',  type:'text',  label:'Le design des espaces de consultation favorise-t-il une communication sereine avec le soignant ?' },
+        { id:'q8',  type:'text',  label:'Avez-vous vécu une situation où le design d\'un lieu médical a eu un impact positif sur votre moral ?' },
+        { id:'q9',  type:'text',  label:'Si vous pouviez repenser un élément à l\'hôpital avec un·e designer, que choisiriez-vous ?' },
+        { id:'q10', type:'text',  label:'Comment imaginez-vous l\'accueil des patients et le fonctionnement des hôpitaux dans 10, 20 ou 50 ans ?' }
+    ]
+};
+
+const JOBS = {
+    medical:       ['Médecin','Médecin légiste','Manipulateur·rice en électroradiologie médicale','Technicien·ne de laboratoire médical','Chirurgien·ne','Chirurgien·ne-dentiste','Cardiologue','Ophtalmologue','Dermatologue','Pédiatre','Psychiatre','Pédopsychiatre','Gynécologue','Sage-femme','Biologiste médical·e'],
+    paramedical:   ['Infirmier·ère (IDE)','Infirmier·ère anesthésiste (IADE)','Infirmier·ère de bloc opératoire (IBODE)','Infirmier·ère en pratique avancée (IPA)','Infirmier·ère puériculteur·rice','Kinésithérapeute','Ergothérapeute','Acupuncteur·rice','Ostéopathe','Naturopathe','Pédicure-podologue','Psychomotricien·ne','Orthophoniste','Orthoptiste','Audioprothésiste','Opticien·ne','Prothésiste et orthésiste','Nutritionniste','Auxiliaire de puériculture','Ambulancier·ère','Aide-soignant·e'],
+    pharmaceutical:['Directeur·rice de pharmacie','Responsable d\'officine','Conseiller·ère en développement pharmaceutique','Responsable de fabrication et conditionnement','Technicien·ne de fabrication','Pharmacien·ne industriel·le','Pharmacien·ne d\'officine','Délégué·e pharmaceutique','Préparateur·rice en pharmacie','Technicien·ne de laboratoire de recherche pharmaceutique'],
+    connexe:       ['Directeur·rice d\'hôpital','Secrétaire médicale','Ingénieur·e hospitalier·ère']
+};
+
+/* ── 2. ÉTAT ────────────────────────────────────────────────────── */
+let profile  = null;
+let stepIdx  = 0;
+let answers  = [];
+
+/* ── 3. DÉMARRAGE ───────────────────────────────────────────────── */
+function startSurvey(p) {
+    profile = p;
+    stepIdx = 0;
+    answers = new Array(DB[p].length).fill(undefined);
+    showScreen('screen-survey');
+    /* Tag profil */
+    const tags = { pro:'Professionnel·le', student:'Étudiant·e', patient:'Patient·e' };
+    document.getElementById('step-profile-tag').textContent = tags[p] || p;
+    renderStep();
+}
+
+/* ── 4. RENDU D'UNE ÉTAPE ───────────────────────────────────────── */
+function renderStep() {
+    const steps = DB[profile];
+    const step  = steps[stepIdx];
+    const box   = document.getElementById('question-box');
+    const total = steps.length;
+
+    /* Progression */
+    const pct = Math.round((stepIdx / total) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-wrap').setAttribute('aria-valuenow', pct);
+    document.getElementById('step-counter').textContent = `${stepIdx + 1} / ${total}`;
+
+    /* Bouton final */
+    document.getElementById('btn-next').textContent = stepIdx === total - 1 ? 'Soumettre ✦' : 'Suivant →';
+
+    /* Construction HTML */
+    let html = `
+        <span class="question-num" aria-hidden="true">Question ${stepIdx + 1}</span>
+        <p class="question-text">${step.label}</p>
+    `;
+
+    if (step.type === 'category') {
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">
+            <option value="">— Sélectionner —</option>
+            <option value="medical">Les professions médicales</option>
+            <option value="paramedical">Les professions paramédicales</option>
+            <option value="pharmaceutical">Les professions pharmaceutiques</option>
+            <option value="connexe">Les professions connexes</option>
+        </select>`;
+
+    } else if (step.type === 'job') {
+        const cat = answers[0] || '';
+        let opts = '<option value="">— Sélectionner le métier —</option>';
+        if (cat && JOBS[cat]) JOBS[cat].forEach(j => opts += `<option value="${j}">${j}</option>`);
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">${opts}</select>`;
+
+    } else if (step.type === 'select') {
+        let opts = '';
+        step.options.forEach(o => opts += `<option value="${o}">${o || '— Sélectionner —'}</option>`);
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">${opts}</select>`;
+
+    } else if (step.type === 'radio') {
+        const cls = 'radio-group' + (step.inline ? ' inline' : '');
+        const items = step.options.map((o, i) => `
+            <label class="radio-item">
+                <input type="radio" name="step-radio" value="${o}" id="r${i}" onchange="onInputChange()">
+                <span>${o}</span>
+            </label>`).join('');
+        html += `<div class="${cls}" role="radiogroup" aria-label="${step.label}">${items}</div>`;
+
+    } else if (step.type === 'slider') {
+        const mid = Math.round((step.min + step.max) / 2);
+        html += `<div class="slider-wrap">
+            <div class="slider-lbls" aria-hidden="true">
+                <span>${step.lblMin}</span><span>${step.lblMax}</span>
+            </div>
+            <input type="range" id="step-input"
+                min="${step.min}" max="${step.max}" step="${step.step}" value="${mid}"
+                aria-label="${step.label}"
+                aria-valuenow="${mid}" aria-valuemin="${step.min}" aria-valuemax="${step.max}"
+                oninput="onSliderChange(this)">
+            <div class="slider-val" id="slider-display" aria-live="polite">${mid}</div>
+        </div>`;
+
+    } else if (step.type === 'number') {
+        html += `<input type="number" id="step-input" min="0" max="120"
+            placeholder="Ex : 35" aria-label="${step.label}" oninput="onInputChange()">`;
+
+    } else if (step.type === 'text') {
+        html += `<textarea id="step-input" placeholder="Écrivez votre réponse ici…"
+            aria-label="${step.label}" oninput="onInputChange()"></textarea>`;
+    }
+
+    box.innerHTML = html;
+
+    /* Restaurer la valeur sauvegardée */
+    const saved = answers[stepIdx];
+    if (saved !== undefined && saved !== '') {
+        if (step.type === 'radio') {
+            const r = document.querySelector(`input[name="step-radio"][value="${saved}"]`);
+            if (r) r.checked = true;
+        } else if (step.type === 'slider') {
+            const sl = document.getElementById('step-input');
+            if (sl) { sl.value = saved; sl.setAttribute('aria-valuenow', saved); }
+            const sd = document.getElementById('slider-display');
+            if (sd) sd.textContent = saved;
+        } else {
+            const inp = document.getElementById('step-input');
+            if (inp) inp.value = saved;
+        }
+    }
+
+    box.focus();
+    updateNextBtn();
+}
+
+/* ── 5. CONTRÔLE BOUTON SUIVANT ─────────────────────────────────── */
+function getCurrentValue() {
+    const step = DB[profile][stepIdx];
+    if (step.type === 'radio') {
+        const c = document.querySelector('input[name="step-radio"]:checked');
+        return c ? c.value : '';
+    }
+    if (step.type === 'slider') {
+        const s = document.getElementById('step-input');
+        return s ? s.value : '';
+    }
+    const el = document.getElementById('step-input');
+    return el ? el.value.trim() : '';
+}
+
+/* Validation stricte : TOUTES les questions bloquent le bouton si sans réponse */
+function isAnswerValid() {
+    const step = DB[profile][stepIdx];
+    const val  = getCurrentValue();
+
+    switch (step.type) {
+        // Menus profil et select → valeur non vide obligatoire
+        case 'category':
+        case 'job':
+        case 'select':
+            return val !== '';
+
+        // Radio → une option cochée obligatoire
+        case 'radio':
+            return val !== '';
+
+        // Slider → toujours valide (valeur par défaut garantie)
+        case 'slider':
+            return true;
+
+        // Numérique → un nombre strictement positif
+        case 'number':
+            return val !== '' && !isNaN(Number(val)) && Number(val) > 0;
+
+        // Texte libre → minimum 3 caractères non-espace
+        case 'text':
+            return val.replace(/\s/g, '').length >= 3;
+
+        default:
+            return val !== '';
+    }
+}
+
+function updateNextBtn() {
+    const valid  = isAnswerValid();
+    const btn    = document.getElementById('btn-next');
+    btn.disabled = !valid;
+    btn.setAttribute('aria-disabled', String(!valid));
+}
+
+function onInputChange()    { updateNextBtn(); }
+function onSliderChange(el) {
+    const step = DB[profile][stepIdx];
+    el.setAttribute('aria-valuenow', el.value);
+    const d = document.getElementById('slider-display');
+    if (d) d.textContent = el.value;
+    updateNextBtn();
+}
+
+/* ── 6. NAVIGATION ──────────────────────────────────────────────── */
+function nextStep() {
+    // Double sécurité : même si le bouton était forcé via DevTools, on re-vérifie
+    if (!isAnswerValid()) return;
+
+    answers[stepIdx] = getCurrentValue();
+    const steps = DB[profile];
+    if (stepIdx < steps.length - 1) {
+        stepIdx++;
+        renderStep();
+    } else {
+        submitSurvey();
+    }
+}
+
+function prevStep() {
+    answers[stepIdx] = getCurrentValue();
+    if (stepIdx > 0) { stepIdx--; renderStep(); }
+    else showScreen('screen-welcome');
+}
+
+/* ── 7. SOUMISSION ──────────────────────────────────────────────── */
+function submitSurvey() {
+    const steps = DB[profile];
+    const namedAnswers = {};
+    steps.forEach((s, i) => { namedAnswers[s.id] = answers[i] ?? ''; });
+
+    let meta = '';
+    if (profile === 'pro')     meta = (namedAnswers.cat || '') + ' · ' + (namedAnswers.job || '');
+    if (profile === 'student') meta = (namedAnswers.filiere || '') + ' — ' + (namedAnswers.year || '');
+    if (profile === 'patient') meta = namedAnswers.situation || '';
+
+    const entry = {
+        id:        '#' + String(Date.now()).slice(-6),
+        date:      new Date().toLocaleDateString('fr-FR'),
+        profile,
+        meta,
+        answers:   namedAnswers,
+        timestamp: new Date().toISOString()
+    };
+
+    const all = loadData();
+    all.push(entry);
+    saveData(all);
+
+    showScreen('screen-success');
+    renderAdmin();
+}
+
+/* ── 8. RESET ───────────────────────────────────────────────────── */
+function resetApp() {
+    profile = null; stepIdx = 0; answers = [];
+    showScreen('screen-welcome');
+}
+
+/* ── 9. GESTION DES ÉCRANS ──────────────────────────────────────── */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const t = document.getElementById(id);
+    if (t) { t.classList.add('active'); t.setAttribute('tabindex', '-1'); t.focus(); }
+}
+
+/* ── 10. STOCKAGE ───────────────────────────────────────────────── */
+const KEY = 'secteursante_v1';
+function loadData()    { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { return []; } }
+function saveData(arr) { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch(e) {} }
+
+/* ── 11. RENDU ADMIN ────────────────────────────────────────────── */
+function renderAdmin() {
+    if (!document.getElementById('admin-panel')) return;
+    const data = loadData();
+    document.getElementById('stat-total').textContent = data.length;
+    document.getElementById('stat-pro').textContent   = data.filter(d => d.profile === 'pro').length;
+    document.getElementById('stat-stud').textContent  = data.filter(d => d.profile === 'student').length;
+    document.getElementById('stat-pat').textContent   = data.filter(d => d.profile === 'patient').length;
+
+    const tbody = document.getElementById('admin-tbody');
+    if (!tbody) return;
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucune réponse pour l\'instant.</td></tr>';
+        return;
+    }
+    const lbl = { pro:'Professionnel·le', student:'Étudiant·e', patient:'Patient·e' };
+    tbody.innerHTML = data.map(r => {
+        const preview = Object.values(r.answers).filter(v => v && v.length > 2).slice(2,5).join(' · ').substring(0,100);
+        return `<tr>
+            <td style="color:var(--jade);font-weight:600">${r.id}</td>
+            <td style="white-space:nowrap">${r.date}</td>
+            <td>${lbl[r.profile] || r.profile}</td>
+            <td>${r.meta}</td>
+            <td>${preview}…</td>
+        </tr>`;
+    }).join('');
+}
+
+/* ── 12. EXPORTS ────────────────────────────────────────────────── */
+function esc(v)  { return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
+function today() { return new Date().toISOString().slice(0, 10); }
+function dl(content, name, mime) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = name; a.click();
+}
+
+function exportCSV() {
+    const data = loadData();
+    if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+    const ansKeys = data[0].answers ? Object.keys(data[0].answers) : [];
+    const headers = ['ID','Date','Profil','Meta', ...ansKeys];
+    const rows = data.map(r =>
+        [r.id, r.date, r.profile, r.meta, ...ansKeys.map(k => r.answers?.[k] ?? '')].map(esc).join(';')
+    );
+    dl('\uFEFF' + headers.map(esc).join(';') + '\n' + rows.join('\n'),
+       'SecteurSante_' + today() + '.csv', 'text/csv;charset=utf-8');
+}
+
+function exportJSON() {
+    const data = loadData();
+    if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+    dl(JSON.stringify(data, null, 2), 'SecteurSante_' + today() + '.json', 'application/json');
+}
+
+function clearData() {
+    if (!confirm('Supprimer toutes les données locales ? Cette action est irréversible.')) return;
+    localStorage.removeItem(KEY);
+    renderAdmin();
+}
+</script>
+</body>
+</html>
