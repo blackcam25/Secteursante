@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Recherche participative sur le design inclusif dans le secteur de la santé — Camille Besse Devies, Beaux-Arts de Marseille.">
+    <title>Design &amp; Santé | Recherche participative — Camille Besse Devies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ─────────────────────────────────────────────────────────
+           DESIGN TOKENS — Cyber-médical sobre
+           Palette : fond ardoise profond · blanc cassé · jade calme · ambre institutionnel
+        ───────────────────────────────────────────────────────── */
+        :root {
+            --bg:          #0D1117;
+            --bg2:         #131920;
+            --surface:     #1A2332;
+            --surface2:    #1F2B3E;
+            --surface3:    #243345;
+
+            --jade:        #2DD4A0;   /* accent primaire — jade médical */
+            --jade-dim:    rgba(45,212,160,0.10);
+            --jade-glow:   rgba(45,212,160,0.20);
+            --amber:       #F59E0B;   /* accent secondaire — chaleur institutionnelle */
+            --amber-dim:   rgba(245,158,11,0.12);
+
+            --text:        #E8EDF4;
+            --text-soft:   #9BAABB;
+            --text-muted:  #5A6A7E;
+            --border:      rgba(255,255,255,0.07);
+            --border-med:  rgba(255,255,255,0.12);
+
+            --font-display: 'DM Serif Display', Georgia, serif;
+            --font-body:    'DM Sans', system-ui, sans-serif;
+
+            --r-sm:  8px;
+            --r-md:  14px;
+            --r-lg:  20px;
+            --r-xl:  28px;
+
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-pop:  0 8px 40px rgba(0,0,0,0.55);
+        }
+
+        /* ── RESET ──────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-weight: 400;
+            line-height: 1.65;
+            min-height: 100vh;
+            padding: 20px 14px 60px;
+        }
+
+        /* Grid background subtil */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(45,212,160,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(45,212,160,0.025) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── SKIP LINK ──────────────────────────────────────────── */
+        .skip-link {
+            position: absolute; top: -100%; left: 0;
+            background: var(--jade); color: var(--bg);
+            padding: .5rem 1rem; font-weight: 600;
+            border-radius: 0 0 var(--r-sm) 0; z-index: 9999;
+            text-decoration: none; font-size: .85rem;
+        }
+        .skip-link:focus { top: 0; }
+
+        /* ── FOCUS ──────────────────────────────────────────────── */
+        :focus-visible { outline: 2px solid var(--jade); outline-offset: 3px; border-radius: var(--r-sm); }
+        :focus:not(:focus-visible) { outline: none; }
+
+        /* ── OUTER WRAPPER ──────────────────────────────────────── */
+        .outer {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+        }
+
+        /* ── APP CARD ───────────────────────────────────────────── */
+        .app {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            border: 1px solid var(--border-med);
+            box-shadow: var(--shadow-pop), 0 0 0 1px rgba(45,212,160,0.06);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Bande de couleur top */
+        .app::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--jade), var(--amber), var(--jade));
+            background-size: 200% 100%;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .app-inner {
+            padding: 24px 20px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── SCREENS ────────────────────────────────────────────── */
+        .screen { display: none; flex-direction: column; flex: 1; }
+        .screen.active {
+            display: flex;
+            animation: fadeUp .35s ease forwards;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN D'ACCUEIL
+        ══════════════════════════════════════════════════════════ */
+        #screen-welcome {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0;
+        }
+
+        .welcome-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--jade-dim);
+            border: 1px solid rgba(45,212,160,0.22);
+            color: var(--jade);
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 22px;
+        }
+        .welcome-eyebrow::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--jade);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .4; transform: scale(.7); }
+        }
+
+        .welcome-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 7vw, 2.8rem);
+            font-weight: 400;
+            line-height: 1.1;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -.01em;
+            text-align: center;
+        }
+        .welcome-title em {
+            font-style: italic;
+            color: var(--jade);
+        }
+
+        .welcome-sub {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.65;
+            margin-bottom: 24px;
+            max-width: 420px;
+            text-align: center;
+        }
+        .welcome-sub strong { color: var(--amber); font-weight: 500; }
+
+        .welcome-divider {
+            width: 36px; height: 2px;
+            background: linear-gradient(90deg, var(--jade), var(--amber));
+            border-radius: 2px;
+            margin-bottom: 28px;
+        }
+
+        .profile-prompt {
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .profile-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Boutons profil */
+        .btn-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            padding: 16px 18px;
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: .95rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-profile::after {
+            content: '→';
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%) translateX(4px);
+            color: var(--text-muted);
+            transition: transform .2s, color .2s;
+            font-size: 1rem;
+        }
+        .btn-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        }
+        .btn-profile:hover::after {
+            transform: translateY(-50%) translateX(0);
+            color: var(--jade);
+        }
+        .btn-profile:active { transform: translateY(0) scale(.99); }
+
+        .btn-pro:hover     { border-color: var(--jade); background: rgba(45,212,160,0.07); }
+        .btn-student:hover { border-color: var(--amber); background: rgba(245,158,11,0.07); }
+        .btn-patient:hover { border-color: #a78bfa; background: rgba(167,139,250,0.07); }
+
+        .bp-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface3);
+            border-radius: var(--r-sm);
+        }
+        .btn-pro .bp-icon     { background: var(--jade-dim); }
+        .btn-student .bp-icon { background: var(--amber-dim); }
+        .btn-patient .bp-icon { background: rgba(167,139,250,0.12); }
+
+        .bp-text { display: flex; flex-direction: column; gap: 1px; }
+        .bp-title { font-weight: 600; font-size: .95rem; }
+        .bp-sub   { font-size: .75rem; color: var(--text-muted); }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN QUESTIONNAIRE PAS-À-PAS
+        ══════════════════════════════════════════════════════════ */
+        #screen-survey {
+            justify-content: flex-start;
+            gap: 16px;
+        }
+
+        .survey-header { display: flex; flex-direction: column; gap: 8px; }
+
+        .survey-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .step-counter {
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .step-profile-tag {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--jade-dim);
+            color: var(--jade);
+            border: 1px solid rgba(45,212,160,.2);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jade), var(--amber));
+            border-radius: 99px;
+            transition: width .4s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* Question */
+        .survey-body { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+
+        .question-num {
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: var(--jade);
+        }
+
+        .question-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.1rem, 3.5vw, 1.3rem);
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.45;
+        }
+
+        /* ── Inputs ─────────────────────────────────────────────── */
+        select, textarea, input[type="number"] {
+            width: 100%;
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 14px 16px;
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: .95rem;
+            font-weight: 400;
+            transition: border-color .2s, box-shadow .2s;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6A7E' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 42px;
+        }
+        select option { background: var(--surface2); color: var(--text); }
+        textarea { height: 120px; resize: none; line-height: 1.6; }
+        input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+        select:focus, textarea:focus, input:focus {
+            border-color: var(--jade);
+            box-shadow: 0 0 0 3px var(--jade-dim);
+        }
+
+        /* ── Radio ──────────────────────────────────────────────── */
+        .radio-group { display: flex; flex-direction: column; gap: 8px; }
+        .radio-group.inline { flex-direction: row; flex-wrap: wrap; }
+
+        .radio-item {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 13px 16px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: border-color .2s, background .2s;
+            flex: 1; min-width: 100px;
+        }
+        .radio-item:hover { border-color: var(--jade); background: var(--jade-dim); }
+        .radio-item input[type="radio"] {
+            accent-color: var(--jade);
+            width: 16px; height: 16px;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .radio-item:has(input:checked) {
+            border-color: var(--jade);
+            background: var(--jade-dim);
+        }
+        .radio-item:has(input:checked) span { color: var(--jade); font-weight: 600; }
+
+        /* ── Slider ─────────────────────────────────────────────── */
+        .slider-wrap {
+            background: var(--bg2);
+            border: 1.5px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 18px 16px 14px;
+        }
+        .slider-lbls {
+            display: flex; justify-content: space-between;
+            font-size: .72rem; color: var(--text-muted);
+            margin-bottom: 10px; letter-spacing: .04em;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--jade);
+            cursor: pointer;
+            height: 6px;
+        }
+        .slider-val {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--jade);
+            margin-top: 8px;
+            line-height: 1;
+        }
+
+        /* ── Navigation ─────────────────────────────────────────── */
+        .nav-row {
+            display: flex;
+            gap: 10px;
+            padding-top: 4px;
+        }
+
+        .btn-nav {
+            flex: 1;
+            padding: 15px;
+            border-radius: var(--r-md);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: .95rem;
+            cursor: pointer;
+            border: none;
+            transition: all .2s;
+        }
+        .btn-nav:active { transform: scale(.98); }
+
+        .btn-back {
+            background: rgba(255,255,255,.06);
+            color: var(--text-soft);
+            border: 1.5px solid var(--border-med);
+            flex: 0 0 auto;
+            padding: 15px 20px;
+        }
+        .btn-back:hover { background: rgba(255,255,255,.10); }
+
+        .btn-next {
+            background: var(--jade);
+            color: var(--bg);
+            font-weight: 700;
+        }
+        .btn-next:hover { background: #25c090; box-shadow: 0 4px 20px rgba(45,212,160,0.3); }
+        .btn-next:disabled {
+            background: var(--surface3);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ÉCRAN SUCCÈS
+        ══════════════════════════════════════════════════════════ */
+        #screen-success {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .success-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: var(--jade-dim);
+            border: 2px solid var(--jade);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            animation: ring-pop .5s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        @keyframes ring-pop {
+            0%   { transform: scale(.6); opacity: 0; }
+            60%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: var(--text);
+        }
+        .success-sub {
+            font-size: .9rem;
+            color: var(--text-soft);
+            line-height: 1.65;
+            max-width: 380px;
+        }
+        .success-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--text-muted);
+            border-left: 2px solid var(--jade);
+            padding-left: 14px;
+            text-align: left;
+            max-width: 360px;
+        }
+
+        .btn-restart {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--r-md);
+            background: transparent;
+            border: 1.5px solid var(--border-med);
+            color: var(--text-soft);
+            font-family: var(--font-body);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-restart:hover { background: rgba(255,255,255,.06); color: var(--text); }
+
+        /* ══════════════════════════════════════════════════════════
+           ADMIN PANEL
+        ══════════════════════════════════════════════════════════ */
+        #admin-panel {
+            background: #06080D;
+            border-radius: var(--r-xl);
+            border: 1px solid rgba(245,158,11,.25);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .admin-top {
+            display: flex; flex-wrap: wrap;
+            justify-content: space-between; align-items: flex-start;
+            gap: .75rem; margin-bottom: 18px;
+        }
+        .admin-top h3 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 400;
+            color: var(--text);
+        }
+        .admin-pill {
+            font-size: .68rem; font-weight: 700;
+            letter-spacing: .12em; text-transform: uppercase;
+            padding: 4px 10px; border-radius: 999px;
+            background: rgba(245,158,11,.12);
+            border: 1px solid rgba(245,158,11,.3);
+            color: var(--amber);
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px; margin-bottom: 18px;
+        }
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: .85rem .75rem;
+            text-align: center;
+        }
+        .stat-n { font-family: var(--font-display); font-size: 1.9rem; color: var(--jade); line-height: 1; }
+        .stat-l { font-size: .65rem; color: var(--text-muted); margin-top: .25rem; text-transform: uppercase; letter-spacing: .06em; }
+
+        .table-wrap { overflow-x: auto; border-radius: var(--r-sm); margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+        th {
+            background: rgba(45,212,160,.08);
+            color: var(--jade);
+            padding: 10px 12px;
+            text-align: left;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+            vertical-align: top;
+            max-width: 160px;
+            word-break: break-word;
+            font-size: .78rem;
+            color: var(--text-soft);
+        }
+        tr:hover td { background: rgba(45,212,160,.03); }
+
+        .admin-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn-adm {
+            background: transparent;
+            border: 1px solid rgba(45,212,160,.3);
+            color: var(--jade);
+            padding: 8px 16px;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: .8rem;
+            transition: all .2s;
+        }
+        .btn-adm:hover { background: var(--jade-dim); }
+        .btn-adm-danger {
+            border-color: rgba(239,68,68,.3);
+            color: #f87171;
+            margin-left: auto;
+        }
+        .btn-adm-danger:hover { background: rgba(239,68,68,.1); }
+
+
+        /* ── ÉCRAN SUCCÈS ENRICHI ───────────────────────────────── */
+        #screen-success {
+            align-items: center;
+            justify-content: flex-start;
+            gap: 20px;
+            overflow-y: auto;
+            text-align: center;
+        }
+        #screen-success * {
+            text-align: center;
+        }
+
+        .success-hd {
+            text-align: center;
+            width: 100%;
+        }
+        .success-ring {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: var(--jade-dim);
+            border: 2px solid var(--jade);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 14px;
+            animation: ring-pop .5s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        @keyframes ring-pop {
+            0%   { transform: scale(.6); opacity: 0; }
+            60%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .success-title {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .success-sub {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .manifesto-block {
+            background: linear-gradient(135deg, rgba(45,212,160,0.06), rgba(245,158,11,0.06));
+            border-radius: var(--r-md);
+            border: 1px solid rgba(45,212,160,0.18);
+            padding: 18px 20px;
+            font-size: .92rem;
+            line-height: 1.65;
+            color: var(--text);
+            width: 100%;
+            text-align: center !important;
+        }
+        .manifesto-block strong { color: var(--jade); }
+
+        .edu-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .edu-card {
+            background: var(--surface2);
+            border: 1px solid var(--border-med);
+            border-radius: var(--r-md);
+            padding: 16px 18px;
+            text-align: center;
+        }
+        .edu-card-title {
+            font-size: .82rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .edu-card p {
+            font-size: .88rem;
+            color: var(--text-soft);
+            line-height: 1.6;
+        }
+
+        .btn-restart {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--r-md);
+            background: transparent;
+            border: 1.5px solid var(--border-med);
+            color: var(--text-soft);
+            font-family: var(--font-body);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
+        }
+        .btn-restart:hover { background: rgba(255,255,255,.06); color: var(--text); }
+
+        /* ── UTILS ──────────────────────────────────────────────── */
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+        /* ── WELCOME HOOK ────────────────────────────────────────── */
+        .welcome-hook {
+            display: flex; flex-direction: column; gap: 2px;
+            margin-bottom: 22px; padding: 16px 18px;
+            background: linear-gradient(135deg, rgba(45,212,160,0.06), rgba(245,158,11,0.04));
+            border-left: 3px solid var(--jade);
+            border-radius: 0 var(--r-md) var(--r-md) 0;
+            text-align: left;
+            width: 100%;
+        }
+        .hook-line { font-family: var(--font-display); font-size: clamp(.95rem,3vw,1.1rem); font-style: italic; color: var(--text-soft); line-height: 1.4; }
+        .hook-line--accent { color: var(--jade); font-size: clamp(1.05rem,3.5vw,1.25rem); }
+        .hook-line--small { font-family: var(--font-body); font-style: normal; font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); margin-top: 8px; }
+
+        /* ── PRESENTER ───────────────────────────────────────────── */
+        .presenter-section { background: linear-gradient(135deg, rgba(45,212,160,0.04), rgba(245,158,11,0.04)); border-radius: var(--r-xl); border: 1px solid var(--border-med); padding: 28px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .presenter-section::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--amber), var(--jade)); }
+        .presenter-eyebrow { display:inline-flex; align-items:center; gap:7px; background: var(--amber-dim); border:1px solid rgba(245,158,11,.25); color:var(--amber); padding:4px 12px; border-radius:999px; font-size:.68rem; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; margin-bottom:18px; }
+        .presenter-name { font-family:var(--font-display); font-size:clamp(1.5rem,5vw,2rem); font-weight:400; color:var(--text); line-height:1.1; margin-bottom:6px; text-align:center; }
+        .presenter-name em { font-style:italic; color:var(--amber); }
+        .presenter-role { font-size:.82rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:20px; text-align:center; }
+        .presenter-divider { width:32px; height:2px; background:linear-gradient(90deg,var(--amber),var(--jade)); border-radius:2px; margin-bottom:20px; }
+        .presenter-bio { font-size:.9rem; color:var(--text-soft); line-height:1.75; margin-bottom:14px; text-align:center; width:100%; }
+        .presenter-bio strong { color:var(--jade); font-weight:500; }
+        .presenter-vision { background:rgba(45,212,160,0.05); border-left:3px solid var(--jade); border-radius:0 var(--r-md) var(--r-md) 0; padding:14px 16px; font-size:.88rem; line-height:1.7; color:var(--text); font-style:italic; text-align:left; width:100%; }
+
+        /* ── CONTACT ─────────────────────────────────────────────── */
+        .contact-section { background:var(--surface); border-radius:var(--r-xl); border:1px solid var(--border-med); padding:28px; box-shadow:var(--shadow-card); display:flex; flex-direction:column; gap:14px; align-items:center; text-align:center; }
+        .contact-eyebrow { font-size:.68rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-muted); }
+        .contact-title { font-family:var(--font-display); font-size:1.4rem; font-weight:400; color:var(--text); }
+        .contact-desc { font-size:.86rem; color:var(--text-soft); line-height:1.65; }
+        .contact-links { display:flex; flex-direction:column; gap:8px; width:100%; }
+        .contact-link { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 16px; background:var(--surface2); border:1.5px solid var(--border-med); border-radius:var(--r-md); text-decoration:none; color:var(--text); transition:border-color .2s, background .2s, transform .15s; text-align:center; }
+        .contact-link:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); }
+        .contact-instagram:hover { border-color:#e1306c; background:rgba(225,48,108,.06); }
+        .contact-instagram:hover .contact-link-icon { color:#e1306c; }
+        .contact-email:hover { border-color:var(--jade); background:var(--jade-dim); }
+        .contact-email:hover .contact-link-icon { color:var(--jade); }
+        .contact-link-icon { width:36px; height:36px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:var(--surface3); border-radius:var(--r-sm); color:var(--text-muted); transition:color .2s; }
+        .contact-link-icon svg { width:18px; height:18px; }
+        .contact-link-text { display:flex; flex-direction:column; gap:1px; }
+        .contact-link-label { font-weight:600; font-size:.92rem; }
+        .contact-link-sub { font-size:.75rem; color:var(--text-muted); }
+        .contact-link-arrow { color:var(--text-muted); font-size:.9rem; transition:transform .2s; }
+        .contact-link:hover .contact-link-arrow { transform:translateX(3px); color:var(--text); }
+        .contact-note { font-size:.75rem; color:var(--text-muted); text-align:center; letter-spacing:.04em; }
+
+        /* ── SHARE ───────────────────────────────────────────────── */
+        .share-section { background:var(--surface); border-radius:var(--r-xl); border:1px solid var(--border-med); padding:28px; box-shadow:var(--shadow-card); display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center; position:relative; overflow:hidden; }
+        .share-section::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--jade),var(--amber),var(--jade)); background-size:200% 100%; animation:shimmer 4s linear infinite; }
+        .share-eyebrow { font-size:.68rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--jade); background:var(--jade-dim); border:1px solid rgba(45,212,160,.22); padding:4px 14px; border-radius:999px; }
+        .share-title { font-family:var(--font-display); font-size:1.5rem; font-weight:400; color:var(--text); }
+        .share-desc { font-size:.88rem; color:var(--text-soft); line-height:1.7; max-width:400px; }
+        .qr-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+        .qr-inner { background:#fff; border-radius:var(--r-md); padding:12px; box-shadow:0 0 0 3px rgba(45,212,160,.2), 0 8px 32px rgba(0,0,0,.4); }
+        .qr-hint { font-size:.72rem; color:var(--text-muted); letter-spacing:.04em; }
+        .share-btns { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; }
+        @media (max-width: 400px) {
+            .share-btns { grid-template-columns: 1fr; }
+        }
+        .share-btn { display:flex; align-items:center; justify-content:center; gap:9px; padding:13px 16px; border-radius:var(--r-md); font-family:var(--font-body); font-size:.88rem; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; border:1.5px solid var(--border-med); background:var(--surface2); color:var(--text); }
+        .share-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.3); }
+        .share-copy:hover  { border-color:var(--jade); background:var(--jade-dim); color:var(--jade); }
+        .share-insta:hover { border-color:#e1306c; background:rgba(225,48,108,.08); color:#e1306c; }
+        .share-whatsapp:hover { border-color:#25d366; background:rgba(37,211,102,.08); color:#25d366; }
+        .share-sms:hover   { border-color:var(--amber); background:var(--amber-dim); color:var(--amber); }
+        .share-icon { font-size:1.1rem; }
+        .share-copied { font-size:.82rem; color:var(--jade); font-weight:600; display:none; }
+
+        /* ── UTILS ───────────────────────────────────────────────── */
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Aller au contenu principal</a>
+
+<div class="outer">
+
+    <!-- ══ APP CARD ════════════════════════════════════════════════ -->
+    <div class="app">
+        <div class="app-inner" id="main" role="main">
+
+            <!-- ══ ACCUEIL ════════════════════════════════════════ -->
+            <div id="screen-welcome" class="screen active" aria-labelledby="h-title">
+
+                <div class="welcome-eyebrow"><a href="https://www.beauxartsdemarseille.fr" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">Beaux-Arts de Marseille</a> · Design inclusif · 2026</div>
+
+                <h1 class="welcome-title" id="h-title">
+                    Design &amp;<br><em>Santé</em>
+                </h1>
+
+                <p class="welcome-sub">
+                    Le système de santé existe depuis toujours. Personne n'a encore vraiment pensé à le <strong>concevoir pour les humains qui le vivent</strong>.
+                </p>
+
+                <div class="welcome-hook">
+                    <p class="hook-line">Ce questionnaire, c'est une étudiante en beaux-arts</p>
+                    <p class="hook-line hook-line--accent">qui décide que ça peut changer.</p>
+                    <p class="hook-line hook-line--small">3 minutes · ta voix · et on commence.</p>
+                </div>
+
+                <p class="profile-prompt">Quel est votre profil ?</p>
+
+                <div class="profile-btns" role="group" aria-label="Choisissez votre profil pour démarrer">
+                    <button class="btn-profile btn-pro" onclick="startSurvey('pro')">
+                        <span class="bp-icon" aria-hidden="true">🩺</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Professionnel·le de santé</span>
+                            <span class="bp-sub">Médecin, infirmier·ère, pharmacien·ne…</span>
+                        </span>
+                    </button>
+                    <button class="btn-profile btn-student" onclick="startSurvey('student')">
+                        <span class="bp-icon" aria-hidden="true">📚</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Étudiant·e en santé</span>
+                            <span class="bp-sub">Médecine, IFSI, Kiné, Pharmacie…</span>
+                        </span>
+                    </button>
+                    <button class="btn-profile btn-patient" onclick="startSurvey('patient')">
+                        <span class="bp-icon" aria-hidden="true">🤝</span>
+                        <span class="bp-text">
+                            <span class="bp-title">Patient·e / Proche aidant·e</span>
+                            <span class="bp-sub">Toute personne en parcours de soin</span>
+                        </span>
+                    </button>
+                </div>
+
+            </div><!-- /screen-welcome -->
+
+            <!-- ══ QUESTIONNAIRE ══════════════════════════════════ -->
+            <div id="screen-survey" class="screen" aria-live="polite" aria-atomic="true">
+
+                <div class="survey-header">
+                    <div class="survey-meta">
+                        <span class="step-counter" id="step-counter" aria-live="polite"></span>
+                        <span class="step-profile-tag" id="step-profile-tag"></span>
+                    </div>
+                    <div class="progress-track"
+                        role="progressbar"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                        id="progress-wrap"
+                        aria-label="Progression du questionnaire">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="survey-body">
+                    <div id="question-box" tabindex="-1">
+                        <!-- injecté par JS -->
+                    </div>
+                </div>
+
+                <div class="nav-row">
+                    <button class="btn-nav btn-back" id="btn-back" onclick="prevStep()">
+                        ← Retour
+                    </button>
+                    <button class="btn-nav btn-next" id="btn-next" onclick="nextStep()">
+                        Suivant →
+                    </button>
+                </div>
+
+            </div><!-- /screen-survey -->
+
+            <!-- ══ SUCCÈS ENRICHI ══════════════════════════════════ -->
+            <div id="screen-success" class="screen" role="status" aria-live="polite" aria-atomic="true">
+
+                <div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:20px;">
+
+                    <!-- En-tête -->
+                    <div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:8px;">
+                        <div class="success-ring" aria-hidden="true">✦</div>
+                        <p class="success-title" style="text-align:center;width:100%;">Transmission réussie</p>
+                        <p class="success-sub" style="text-align:center;width:100%;max-width:360px;">Vos réponses ont bien été enregistrées. Merci de contribuer à cette recherche sur le design inclusif en santé.</p>
+                    </div>
+
+                    <!-- Manifesto -->
+                    <div style="display:flex;flex-direction:column;align-items:center;width:100%;background:linear-gradient(135deg,rgba(45,212,160,0.06),rgba(245,158,11,0.06));border:1px solid rgba(45,212,160,0.18);border-radius:var(--r-md);padding:20px 22px;gap:6px;">
+                        <p style="font-size:.95rem;font-weight:700;color:var(--jade);margin:0;">Merci infiniment.</p>
+                        <p style="font-size:.9rem;line-height:1.65;color:var(--text);margin:0;max-width:420px;">À toutes celles et ceux qui ont choisi la voie de la santé, qui s'engagent au quotidien et prennent soin de milliers de personnes chaque jour : votre dévouement est le pilier de notre société. Ce projet a été conçu pour vous redonner la parole.</p>
+                    </div>
+
+                    <!-- Cartes éducatives -->
+                    <div style="display:flex;flex-direction:column;width:100%;gap:10px;">
+                        <div style="display:flex;flex-direction:column;align-items:center;background:var(--surface2);border:1px solid var(--border-med);border-radius:var(--r-md);padding:18px 20px;gap:8px;">
+                            <p style="font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin:0;">🧬 Le Design d'Espace, c'est quoi ?</p>
+                            <p style="font-size:.88rem;color:var(--text-soft);line-height:1.6;margin:0;max-width:420px;">Ce n'est pas seulement de la décoration. C'est l'étude scientifique et sensible de la manière dont l'architecture, la lumière, la signalétique et la disposition du mobilier impactent directement votre fatigue physique, votre stress et la fluidité des soins.</p>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;background:var(--surface2);border:1px solid var(--border-med);border-radius:var(--r-md);padding:18px 20px;gap:8px;">
+                            <p style="font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin:0;">🤝 Et le Design Inclusif ?</p>
+                            <p style="font-size:.88rem;color:var(--text-soft);line-height:1.6;margin:0;max-width:420px;">C'est une philosophie de conception qui refuse de laisser quiconque de côté. En santé, cela signifie imaginer des environnements adaptés à la diversité humaine : de l'étudiant épuisé par ses gardes au patient en situation de handicap. Adapter le lieu à l'humain, et non l'inverse.</p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton -->
+                    <button class="btn-restart" onclick="resetApp()" style="width:100%;">
+                        Relancer le questionnaire
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div><!-- /app-inner -->
+    </div><!-- /app -->
+
+
+    <!-- ══ PRÉSENTATION ══════════════════════════════════════════ -->
+    <div class="presenter-section">
+        <div class="presenter-eyebrow">À propos · Chercheuse</div>
+        <h2 class="presenter-name">Camille<br><em>Besse Devies</em></h2>
+        <p class="presenter-role">Étudiante en design · <a href="https://www.beauxartsdemarseille.fr" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">École des Beaux-Arts de Marseille</a></p>
+        <div class="presenter-divider" aria-hidden="true"></div>
+        <p class="presenter-bio">
+            Je m'appelle Camille Besse Devies, étudiante aux <strong><a href="https://www.beauxartsdemarseille.fr" target="_blank" rel="noopener" style="color:var(--jade);text-decoration:none;">Beaux-Arts de Marseille</a></strong>.
+            Ce questionnaire est le point de départ d'un projet mené dans le cadre de mes études :
+            <strong>donner la parole sur la santé</strong> à toutes et tous, partout en France, sans exception.
+        </p>
+        <p class="presenter-bio">
+            Parce qu'un petit projet peut devenir grand. Mon ambition : que ce travail évolue vers
+            un vrai <strong>design inclusif dans le monde de la santé</strong>, avec un impact concret
+            sur les espaces, les outils et les liens humains qui le composent.
+        </p>
+        <div class="presenter-vision">
+            « Concevoir un système de santé où personne n'est laissé de côté — ni dans les lieux, ni dans les outils, ni dans le langage. »
+        </div>
+    </div>
+
+    <!-- ══ CONTACT ════════════════════════════════════════════════ -->
+    <div class="contact-section">
+        <p class="contact-eyebrow">Suivre · Rester en contact</p>
+        <p class="contact-title">Envie de suivre l'évolution ?</p>
+        <p class="contact-desc">Pas besoin de laisser tes données. Viens directement vers moi — je partage l'avancement du projet au fil du temps.</p>
+        <div class="contact-links">
+            <a class="contact-link contact-instagram" href="https://instagram.com/projetsecteursante" target="_blank" rel="noopener">
+                <span class="contact-link-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg>
+                </span>
+                <span class="contact-link-text">
+                    <span class="contact-link-label">Instagram</span>
+                    <span class="contact-link-sub">@projetsecteursante</span>
+                </span>
+                <span class="contact-link-arrow">→</span>
+            </a>
+            <a class="contact-link contact-email" href="mailto:secteursantee@gmail.com">
+                <span class="contact-link-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 7l10 7 10-7"/></svg>
+                </span>
+                <span class="contact-link-text">
+                    <span class="contact-link-label">Email</span>
+                    <span class="contact-link-sub">secteursantee@gmail.com</span>
+                </span>
+                <span class="contact-link-arrow">→</span>
+            </a>
+        </div>
+        <p class="contact-note">✦ Aucune donnée collectée — c'est toi qui choisis de venir.</p>
+    </div>
+
+    <!-- ══ PARTAGE ════════════════════════════════════════════════ -->
+    <div class="share-section" id="share-section">
+        <div class="share-eyebrow">✦ Faire circuler · Partager</div>
+        <p class="share-title">Partagez cette recherche</p>
+        <p class="share-desc">Plus les voix sont nombreuses, plus l'impact est grand.<br>Envoyez ce questionnaire à vos proches, partagez-le en message privé.</p>
+        <div class="qr-wrap" id="qr-wrap">
+            <div class="qr-inner" id="qr-container"></div>
+            <p class="qr-hint">Photographiez ce code pour ouvrir le questionnaire</p>
+        </div>
+        <div class="share-btns" style="grid-template-columns:1fr 1fr 1fr;">
+            <button class="share-btn share-copy" onclick="copyLink()" id="btn-copy">
+                <span class="share-icon">🔗</span><span class="share-lbl">Copier le lien</span>
+            </button>
+            <a class="share-btn share-whatsapp" id="btn-whatsapp" href="#" target="_blank">
+                <span class="share-icon">💬</span><span class="share-lbl">WhatsApp</span>
+            </a>
+            <a class="share-btn share-sms" id="btn-sms" href="#" target="_blank">
+                <span class="share-icon">✉️</span><span class="share-lbl">SMS / Email</span>
+            </a>
+        </div>
+        <p class="share-copied" id="share-copied">✓ Lien copié !</p>
+    </div>
+
+    <!-- ══ ACCÈS CHERCHEUR ════════════════════════════════════════ -->
+    <div style="text-align:center;padding:8px 0 4px;">
+        <button onclick="openResearcher()" style="background:none;border:none;color:var(--text-muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;opacity:.4;transition:opacity .2s;" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='.4'">
+            ✦ Espace chercheur
+        </button>
+    </div>
+
+    <!-- ══ MODAL CONNEXION CHERCHEUR ════════════════════════════════ -->
+    <div id="researcher-login" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--surface);border:1px solid rgba(245,158,11,.35);border-radius:var(--r-xl);padding:36px 32px;max-width:380px;width:100%;position:relative;box-shadow:var(--shadow-pop);">
+            <button onclick="closeLogin()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;">✕</button>
+            <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber);padding:4px 12px;border-radius:999px;font-size:.65rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:18px;">🔬 Espace chercheur</div>
+            <p style="font-family:var(--font-display);font-size:1.4rem;color:var(--text);margin-bottom:6px;">Connexion</p>
+            <p style="font-size:.84rem;color:var(--text-soft);margin-bottom:22px;line-height:1.6;">Accès réservé à la chercheuse — Camille Besse Devies.</p>
+            <input type="password" id="researcher-pwd" placeholder="Code d'accès…" onkeydown="if(event.key==='Enter')checkResearcher()" style="width:100%;background:var(--bg2);border:1.5px solid var(--border-med);border-radius:var(--r-md);padding:13px 16px;color:var(--text);font-family:var(--font-body);font-size:.95rem;margin-bottom:10px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border-med)'">
+            <p id="researcher-err" style="display:none;font-size:.8rem;color:#f87171;margin-bottom:10px;">Code incorrect. Réessayez.</p>
+            <button onclick="checkResearcher()" style="width:100%;padding:14px;background:var(--amber);color:var(--bg);font-family:var(--font-body);font-weight:700;font-size:.95rem;border:none;border-radius:var(--r-md);cursor:pointer;transition:background .2s;letter-spacing:.02em;">Accéder à l'espace →</button>
+        </div>
+    </div>
+
+    <!-- ══ ÉCRAN ESPACE CHERCHEUR ════════════════════════════════════ -->
+    <div id="researcher-dashboard" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:998;overflow-y:auto;padding:24px 16px 60px;">
+        <div style="max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:18px;">
+
+            <!-- En-tête -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border-med);">
+                <div>
+                    <p style="font-size:.65rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">🔬 Espace chercheur</p>
+                    <p style="font-family:var(--font-display);font-size:1.5rem;color:var(--text);">Tableau de bord</p>
+                </div>
+                <button onclick="closeDashboard()" style="background:rgba(255,255,255,.06);border:1px solid var(--border-med);color:var(--text-soft);font-family:var(--font-body);font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:var(--r-md);cursor:pointer;">← Retour au site</button>
+            </div>
+
+            <!-- Statistiques -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;" id="dash-stats">
+                <div style="background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r-md);padding:16px 12px;text-align:center;">
+                    <p style="font-family:var(--font-display);font-size:2rem;color:var(--jade);line-height:1;" id="dash-total">0</p>
+                    <p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">Total</p>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r-md);padding:16px 12px;text-align:center;">
+                    <p style="font-family:var(--font-display);font-size:2rem;color:var(--jade);line-height:1;" id="dash-pro">0</p>
+                    <p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">Pro</p>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r-md);padding:16px 12px;text-align:center;">
+                    <p style="font-family:var(--font-display);font-size:2rem;color:var(--amber);line-height:1;" id="dash-stud">0</p>
+                    <p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">Étudiant</p>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r-md);padding:16px 12px;text-align:center;">
+                    <p style="font-family:var(--font-display);font-size:2rem;color:#a78bfa;line-height:1;" id="dash-pat">0</p>
+                    <p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">Patient</p>
+                </div>
+            </div>
+
+            <!-- Accès Google Forms -->
+            <div style="background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(45,212,160,.05));border:1px solid rgba(245,158,11,.3);border-radius:var(--r-lg);padding:22px 24px;">
+                <p style="font-size:.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">📊 Google Forms · secteursante@gmail.com</p>
+                <p style="font-size:.88rem;color:var(--text-soft);line-height:1.65;margin-bottom:16px;">Accédez directement à votre espace Google Forms pour consulter toutes les réponses, créer des graphiques et exporter les données.</p>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <a href="https://docs.google.com/forms/u/1/?usp=direct_url" target="_blank" rel="noopener" id="dash-gforms-link" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface2);border:1.5px solid rgba(245,158,11,.3);border-radius:var(--r-md);text-decoration:none;color:var(--text);transition:all .2s;" onmouseover="this.style.borderColor='var(--amber)';this.style.background='rgba(245,158,11,.08)'" onmouseout="this.style.borderColor='rgba(245,158,11,.3)';this.style.background='var(--surface2)'">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <span style="font-size:1.3rem;">📋</span>
+                            <span style="display:flex;flex-direction:column;gap:2px;">
+                                <span style="font-weight:600;font-size:.9rem;">Ouvrir Google Forms</span>
+                                <span style="font-size:.74rem;color:var(--text-muted);">Réponses · Graphiques · Export</span>
+                            </span>
+                        </span>
+                        <span style="color:var(--amber);font-size:.9rem;">→</span>
+                    </a>
+                    <a href="https://drive.google.com/drive/u/1/my-drive" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface2);border:1.5px solid var(--border-med);border-radius:var(--r-md);text-decoration:none;color:var(--text);transition:all .2s;" onmouseover="this.style.borderColor='var(--jade)';this.style.background='var(--jade-dim)'" onmouseout="this.style.borderColor='var(--border-med)';this.style.background='var(--surface2)'">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <span style="font-size:1.3rem;">💾</span>
+                            <span style="display:flex;flex-direction:column;gap:2px;">
+                                <span style="font-weight:600;font-size:.9rem;">Google Drive</span>
+                                <span style="font-size:.74rem;color:var(--text-muted);">Fichiers exportés · Sauvegardes</span>
+                            </span>
+                        </span>
+                        <span style="color:var(--jade);font-size:.9rem;">→</span>
+                    </a>
+                </div>
+                <p style="font-size:.72rem;color:var(--text-muted);margin-top:12px;text-align:center;">⚠️ Une fois l'URL de votre formulaire connue, collez-la ici pour un accès direct.</p>
+            </div>
+
+            <!-- Réponses locales -->
+            <div style="background:var(--surface);border:1px solid var(--border-med);border-radius:var(--r-lg);padding:22px 24px;">
+                <p style="font-size:.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade);margin-bottom:14px;">💾 Réponses stockées localement</p>
+                <div id="dash-table-wrap" style="overflow-x:auto;border-radius:var(--r-sm);margin-bottom:14px;"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <button onclick="dashExportCSV()" style="background:transparent;border:1px solid rgba(45,212,160,.3);color:var(--jade);padding:9px 18px;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:.8rem;transition:all .2s;" onmouseover="this.style.background='var(--jade-dim)'" onmouseout="this.style.background='transparent'">⬇ Exporter CSV</button>
+                    <button onclick="dashExportJSON()" style="background:transparent;border:1px solid rgba(45,212,160,.3);color:var(--jade);padding:9px 18px;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:.8rem;transition:all .2s;" onmouseover="this.style.background='var(--jade-dim)'" onmouseout="this.style.background='transparent'">⬇ Exporter JSON</button>
+                    <button onclick="dashClearData()" style="background:transparent;border:1px solid rgba(239,68,68,.3);color:#f87171;padding:9px 18px;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:.8rem;transition:all .2s;margin-left:auto;" onmouseover="this.style.background='rgba(239,68,68,.08)'" onmouseout="this.style.background='transparent'">🗑 Supprimer</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /outer -->
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── 0. SÉCURITÉ ADMIN ──────────────────────────────────────────── */
+(function () {
+    const panel = document.getElementById('admin-panel');
+    if (!panel) return;
+    const loc = window.location;
+    const allowed =
+        loc.hostname === 'localhost'  ||
+        loc.hostname === '127.0.0.1' ||
+        loc.hostname === ''          ||
+        loc.protocol === 'file:'     ||
+        new URLSearchParams(loc.search).get('mode') === 'camille-admin';
+    if (!allowed) panel.parentNode.removeChild(panel);
+    /* Si autorisé, on charge les données existantes immédiatement */
+    else renderAdmin();
+})();
+
+/* ── 1. BASE DE DONNÉES QUESTIONS ───────────────────────────────── */
+const DB = {
+
+    pro: [
+        { id:'cat',  type:'category', label:'Sélectionnez votre catégorie sectorielle',   required:true },
+        { id:'job',  type:'job',      label:'Quel est votre métier précis ?',              required:true },
+        { id:'q1',   type:'radio',    label:'Depuis combien de temps exercez-vous dans ce domaine ?',
+          options:['Moins de 2 ans','Entre 2 et 5 ans','Entre 5 et 10 ans','Plus de 10 ans'], inline:true },
+        { id:'q2',   type:'text',     label:'Pourquoi avez-vous choisi ce secteur de métier et cette voie ?' },
+        { id:'q3',   type:'number',   label:'Combien d\'heures travaillez-vous en moyenne par semaine ?' },
+        { id:'q4',   type:'slider',   label:'Votre temps de repos hebdomadaire est-il suffisant pour récupérer ?',
+          min:1, max:5, step:1, lblMin:'Insuffisant', lblMax:'Excellent' },
+        { id:'q5',   type:'radio',    label:'Arrivez-vous à conserver du temps pour vos activités personnelles ?',
+          options:['Oui, régulièrement','Difficilement','Non, jamais'], inline:false },
+        { id:'q6',   type:'text',     label:'L\'ergonomie de votre matériel de soin est-elle adaptée à votre pratique au quotidien ?' },
+        { id:'q7',   type:'radio',    label:'Comment évaluez-vous la fluidité des logiciels médicaux que vous utilisez ?',
+          options:['Très lourd / stressant','Moyen, perfectible','Fluide et ergonomique'], inline:false },
+        { id:'q8',   type:'text',     label:'Le design et l\'aménagement de vos espaces de travail réduisent-ils votre fatigue physique ?' },
+        { id:'q9',   type:'text',     label:'Comment vos proches et vos patients perçoivent-ils votre charge de travail ?' },
+        { id:'q10',  type:'text',     label:'Comment imaginez-vous l\'évolution de vos outils et espaces de soins dans 10, 20 ou 50 ans ?' },
+        { id:'q11',  type:'text',     label:'Avez-vous une anecdote marquante — un moment où le lieu, l\'outil ou l\'environnement a vraiment changé quelque chose ?' },
+        { id:'q12',  type:'text',     label:'Si vous pouviez changer une seule chose dans le secteur de la santé, ce serait quoi ?' }
+    ],
+
+    student: [
+        { id:'filiere', type:'select', label:'Sélectionnez votre filière d\'étude', required:true,
+          options:['','Médecine','Maïeutique / Sage-femme','Infirmier·ère (IFSI)','Kinésithérapie','Pharmacie','Chirurgie dentaire','Ergothérapie','Orthophonie','Psychomotricité','Aide-soignant·e (IFAS)','Réorientation / Reconversion','Autre cursus santé'] },
+        { id:'year', type:'select', label:'Quelle est votre année d\'étude ?', required:true,
+          options:['','PASS / LAS (1ère année)','Licence 2','Licence 3','Master 1 / Externe','Master 2 / Externe','Internat — Année 1','Internat — Année 2+','Prépa concours paramédicaux','Formation en alternance'] },
+        { id:'q1',  type:'radio',  label:'Travailles-tu à côté de tes études pour les financer ?',
+          options:['Non','Oui, parfois','Oui, régulièrement'], inline:true },
+        { id:'q2',  type:'text',   label:'En tant que futur·e acteur·rice de la santé, pourquoi as-tu choisi cette voie ?' },
+        { id:'q3',  type:'text',   label:'Comment vis-tu tes études et ton quotidien actuellement, et pourquoi ?' },
+        { id:'q4',  type:'number', label:'Combien d\'heures par semaine consacres-tu à tes études (cours + stages + révisions) ?' },
+        { id:'q5',  type:'slider', label:'Ton niveau de stress face aux concours et examens ?',
+          min:1, max:5, step:1, lblMin:'Serein·e', lblMax:'Épuisé·e' },
+        { id:'q6',  type:'text',   label:'Comment vis-tu la charge mentale lors de tes stages cliniques à l\'hôpital ?' },
+        { id:'q7',  type:'radio',  label:'L\'ergonomie de tes lieux d\'apprentissage est-elle adaptée à ton bien-être ?',
+          options:['Oui, bien conçus','Moyennement','Non, ils aggravent la fatigue'], inline:false },
+        { id:'q8',  type:'text',   label:'Comment le design des espaces et rythmes de cours pourrait-il soulager ton stress ?' },
+        { id:'q9',  type:'text',   label:'Quelles sont tes appréhensions concernant ton futur accès à l\'emploi ?' },
+        { id:'q10', type:'text',   label:'Comment imagines-tu le secteur de la santé et ton futur métier dans 10, 20 ou 50 ans ?' },
+        { id:'q11', type:'text',   label:'Tu as une anecdote marquante — un moment en stage ou en cours qui t\'a vraiment frappé·e ?' },
+        { id:'q12', type:'text',   label:'Si tu pouvais changer une seule chose dans le secteur de la santé, ce serait quoi ?' }
+    ],
+
+    patient: [
+        { id:'situation', type:'select', label:'Quelle est votre situation vis-à-vis du soin ?', required:true,
+          options:['','Patient·e chronique (suivi régulier)','Patient·e occasionnel·le','Proche aidant·e'] },
+        { id:'q1',  type:'text',  label:'En quelques mots, comment décririez-vous votre rapport au système de santé aujourd\'hui ?' },
+        { id:'q2',  type:'radio', label:'En moyenne, combien de temps attendez-vous avant votre consultation ?',
+          options:['Moins de 15 min','15 à 30 min','Plus de 30 min'], inline:true },
+        { id:'q3',  type:'radio', label:'La signalétique dans les établissements de santé vous semble-t-elle claire et accessible ?',
+          options:['Oui, très claire','Moyennement','Non, pas du tout'], inline:false },
+        { id:'q4',  type:'slider', label:'Confort des salles d\'attente que vous fréquentez ?',
+          min:1, max:5, step:1, lblMin:'Très anxiogène', lblMax:'Très apaisant' },
+        { id:'q5',  type:'radio', label:'Les outils de prise de rendez-vous en ligne sont-ils simples pour vous ?',
+          options:['Oui, parfaitement','Parfois complexes','Non, c\'est une barrière'], inline:false },
+        { id:'q6',  type:'radio', label:'Rencontrez-vous des difficultés à lire ou comprendre les ordonnances ?',
+          options:['Jamais','Parfois','Souvent'], inline:true },
+        { id:'q7',  type:'text',  label:'Le design des espaces de consultation favorise-t-il une communication sereine avec le soignant ?' },
+        { id:'q8',  type:'text',  label:'Avez-vous vécu une situation où le design d\'un lieu médical a eu un impact positif sur votre moral ?' },
+        { id:'q9',  type:'text',  label:'Si vous pouviez repenser un élément à l\'hôpital avec un·e designer, que choisiriez-vous ?' },
+        { id:'q10', type:'text',  label:'Comment imaginez-vous l\'accueil des patients et le fonctionnement des hôpitaux dans 10, 20 ou 50 ans ?' },
+        { id:'q11', type:'text',  label:'Avez-vous une anecdote marquante — un moment dans un lieu de soin qui vous a particulièrement touché·e ?' },
+        { id:'q12', type:'text',  label:'Si vous pouviez changer une seule chose dans le secteur de la santé, ce serait quoi ?' }
+    ]
+};
+
+const JOBS = {
+    medical:       ['Médecin','Médecin légiste','Manipulateur·rice en électroradiologie médicale','Technicien·ne de laboratoire médical','Chirurgien·ne','Chirurgien·ne-dentiste','Cardiologue','Ophtalmologue','Dermatologue','Pédiatre','Psychiatre','Pédopsychiatre','Gynécologue','Sage-femme','Biologiste médical·e'],
+    paramedical:   ['Infirmier·ère (IDE)','Infirmier·ère anesthésiste (IADE)','Infirmier·ère de bloc opératoire (IBODE)','Infirmier·ère en pratique avancée (IPA)','Infirmier·ère puériculteur·rice','Kinésithérapeute','Ergothérapeute','Acupuncteur·rice','Ostéopathe','Naturopathe','Pédicure-podologue','Psychomotricien·ne','Orthophoniste','Orthoptiste','Audioprothésiste','Opticien·ne','Prothésiste et orthésiste','Nutritionniste','Auxiliaire de puériculture','Ambulancier·ère','Aide-soignant·e'],
+    pharmaceutical:['Directeur·rice de pharmacie','Responsable d\'officine','Conseiller·ère en développement pharmaceutique','Responsable de fabrication et conditionnement','Technicien·ne de fabrication','Pharmacien·ne industriel·le','Pharmacien·ne d\'officine','Délégué·e pharmaceutique','Préparateur·rice en pharmacie','Technicien·ne de laboratoire de recherche pharmaceutique'],
+    connexe:       ['Directeur·rice d\'hôpital','Secrétaire médicale','Ingénieur·e hospitalier·ère']
+};
+
+/* ── 2. ÉTAT ────────────────────────────────────────────────────── */
+let profile  = null;
+let stepIdx  = 0;
+let answers  = [];
+
+/* ── 3. DÉMARRAGE ───────────────────────────────────────────────── */
+function startSurvey(p) {
+    profile = p;
+    stepIdx = 0;
+    answers = new Array(DB[p].length).fill(undefined);
+    showScreen('screen-survey');
+    /* Tag profil */
+    const tags = { pro:'Professionnel·le', student:'Étudiant·e', patient:'Patient·e' };
+    document.getElementById('step-profile-tag').textContent = tags[p] || p;
+    renderStep();
+}
+
+/* ── 4. RENDU D'UNE ÉTAPE ───────────────────────────────────────── */
+function renderStep() {
+    const steps = DB[profile];
+    const step  = steps[stepIdx];
+    const box   = document.getElementById('question-box');
+    const total = steps.length;
+
+    /* Progression et compteur — cohérents avec la logique Étape/Question */
+    let counterText, pct;
+
+    if (profile === 'pro' || profile === 'student') {
+        const nbEtapes   = 2;
+        const nbQuestions = total - nbEtapes; // 12 questions
+        if (stepIdx < nbEtapes) {
+            counterText = `Étape ${stepIdx + 1} / ${nbEtapes}`;
+            pct = Math.round(((stepIdx + 1) / nbEtapes) * 30); // 30% max pour les étapes
+        } else {
+            const qNum = stepIdx - nbEtapes + 1; // 1-based
+            counterText = `Question ${qNum} / ${nbQuestions}`;
+            pct = 30 + Math.round((qNum / nbQuestions) * 70);
+        }
+    } else {
+        // patient : 1 étape, le reste = questions
+        const nbQuestions = total - 1;
+        if (stepIdx === 0) {
+            counterText = `Étape 1 / 1`;
+            pct = 10;
+        } else {
+            const qNum = stepIdx; // 1-based
+            counterText = `Question ${qNum} / ${nbQuestions}`;
+            pct = 10 + Math.round((qNum / nbQuestions) * 90);
+        }
+    }
+
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-wrap').setAttribute('aria-valuenow', pct);
+    document.getElementById('step-counter').textContent = counterText;
+
+    /* Bouton final */
+    document.getElementById('btn-next').textContent = stepIdx === total - 1 ? 'Soumettre ✦' : 'Suivant →';
+
+    /* Construction HTML — étiquette identique au compteur en haut */
+    let html = `
+        <span class="question-num" aria-hidden="true">${counterText}</span>
+        <p class="question-text">${step.label}</p>
+    `;
+
+    if (step.type === 'category') {
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">
+            <option value="">— Sélectionner —</option>
+            <option value="medical">Les professions médicales</option>
+            <option value="paramedical">Les professions paramédicales</option>
+            <option value="pharmaceutical">Les professions pharmaceutiques</option>
+            <option value="connexe">Les professions connexes</option>
+        </select>`;
+
+    } else if (step.type === 'job') {
+        const cat = answers[0] || '';
+        let opts = '<option value="">— Sélectionner le métier —</option>';
+        if (cat && JOBS[cat]) JOBS[cat].forEach(j => opts += `<option value="${j}">${j}</option>`);
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">${opts}</select>`;
+
+    } else if (step.type === 'select') {
+        let opts = '';
+        step.options.forEach(o => opts += `<option value="${o}">${o || '— Sélectionner —'}</option>`);
+        html += `<select id="step-input" aria-label="${step.label}" onchange="onInputChange()">${opts}</select>`;
+
+    } else if (step.type === 'radio') {
+        const cls = 'radio-group' + (step.inline ? ' inline' : '');
+        const items = step.options.map((o, i) => `
+            <label class="radio-item">
+                <input type="radio" name="step-radio" value="${o}" id="r${i}" onchange="onInputChange()">
+                <span>${o}</span>
+            </label>`).join('');
+        html += `<div class="${cls}" role="radiogroup" aria-label="${step.label}">${items}</div>`;
+
+    } else if (step.type === 'slider') {
+        const mid = Math.round((step.min + step.max) / 2);
+        html += `<div class="slider-wrap">
+            <div class="slider-lbls" aria-hidden="true">
+                <span>${step.lblMin}</span><span>${step.lblMax}</span>
+            </div>
+            <input type="range" id="step-input"
+                min="${step.min}" max="${step.max}" step="${step.step}" value="${mid}"
+                aria-label="${step.label}"
+                aria-valuenow="${mid}" aria-valuemin="${step.min}" aria-valuemax="${step.max}"
+                oninput="onSliderChange(this)">
+            <div class="slider-val" id="slider-display" aria-live="polite">${mid}</div>
+        </div>`;
+
+    } else if (step.type === 'number') {
+        html += `<input type="number" id="step-input" min="0" max="120"
+            placeholder="Ex : 35" aria-label="${step.label}" oninput="onInputChange()">`;
+
+    } else if (step.type === 'text') {
+        html += `<textarea id="step-input" placeholder="Écrivez votre réponse ici…"
+            aria-label="${step.label}" oninput="onInputChange()"></textarea>`;
+    }
+
+    box.innerHTML = html;
+
+    /* Restaurer la valeur sauvegardée */
+    const saved = answers[stepIdx];
+    if (saved !== undefined && saved !== '') {
+        if (step.type === 'radio') {
+            const r = document.querySelector(`input[name="step-radio"][value="${saved}"]`);
+            if (r) r.checked = true;
+        } else if (step.type === 'slider') {
+            const sl = document.getElementById('step-input');
+            if (sl) { sl.value = saved; sl.setAttribute('aria-valuenow', saved); }
+            const sd = document.getElementById('slider-display');
+            if (sd) sd.textContent = saved;
+        } else {
+            const inp = document.getElementById('step-input');
+            if (inp) inp.value = saved;
+        }
+    }
+
+    box.focus();
+    updateNextBtn();
+}
+
+/* ── 5. CONTRÔLE BOUTON SUIVANT ─────────────────────────────────── */
+function getCurrentValue() {
+    const step = DB[profile][stepIdx];
+    if (step.type === 'radio') {
+        const c = document.querySelector('input[name="step-radio"]:checked');
+        return c ? c.value : '';
+    }
+    if (step.type === 'slider') {
+        const s = document.getElementById('step-input');
+        return s ? s.value : '';
+    }
+    const el = document.getElementById('step-input');
+    return el ? el.value.trim() : '';
+}
+
+/* Validation stricte : TOUTES les questions bloquent le bouton si sans réponse */
+function isAnswerValid() {
+    const step = DB[profile][stepIdx];
+    const val  = getCurrentValue();
+
+    switch (step.type) {
+        // Menus profil et select → valeur non vide obligatoire
+        case 'category':
+        case 'job':
+        case 'select':
+            return val !== '';
+
+        // Radio → une option cochée obligatoire
+        case 'radio':
+            return val !== '';
+
+        // Slider → toujours valide (valeur par défaut garantie)
+        case 'slider':
+            return true;
+
+        // Numérique → un nombre strictement positif
+        case 'number':
+            return val !== '' && !isNaN(Number(val)) && Number(val) > 0;
+
+        // Texte libre → minimum 3 caractères non-espace
+        case 'text':
+            return val.replace(/\s/g, '').length >= 3;
+
+        default:
+            return val !== '';
+    }
+}
+
+function updateNextBtn() {
+    const valid  = isAnswerValid();
+    const btn    = document.getElementById('btn-next');
+    btn.disabled = !valid;
+    btn.setAttribute('aria-disabled', String(!valid));
+}
+
+function onInputChange()    { updateNextBtn(); }
+function onSliderChange(el) {
+    const step = DB[profile][stepIdx];
+    el.setAttribute('aria-valuenow', el.value);
+    const d = document.getElementById('slider-display');
+    if (d) d.textContent = el.value;
+    updateNextBtn();
+}
+
+/* ── 6. NAVIGATION ──────────────────────────────────────────────── */
+function nextStep() {
+    // Double sécurité : même si le bouton était forcé via DevTools, on re-vérifie
+    if (!isAnswerValid()) return;
+
+    answers[stepIdx] = getCurrentValue();
+    const steps = DB[profile];
+    if (stepIdx < steps.length - 1) {
+        stepIdx++;
+        renderStep();
+    } else {
+        submitSurvey();
+    }
+}
+
+function prevStep() {
+    answers[stepIdx] = getCurrentValue();
+    if (stepIdx > 0) { stepIdx--; renderStep(); }
+    else showScreen('screen-welcome');
+}
+
+/* ── 7. SOUMISSION ──────────────────────────────────────────────── */
+function submitSurvey() {
+    const steps = DB[profile];
+    const namedAnswers = {};
+    steps.forEach((s, i) => { namedAnswers[s.id] = answers[i] ?? ''; });
+
+    let meta = '';
+    if (profile === 'pro')     meta = (namedAnswers.cat || '') + ' · ' + (namedAnswers.job || '');
+    if (profile === 'student') meta = (namedAnswers.filiere || '') + ' — ' + (namedAnswers.year || '');
+    if (profile === 'patient') meta = namedAnswers.situation || '';
+
+    const entry = {
+        id:        '#' + String(Date.now()).slice(-6),
+        date:      new Date().toLocaleDateString('fr-FR'),
+        profile,
+        meta,
+        answers:   namedAnswers,
+        timestamp: new Date().toISOString()
+    };
+
+    const all = loadData();
+    all.push(entry);
+    saveData(all);
+
+    showScreen('screen-success');
+}
+
+/* ── 8. RESET ───────────────────────────────────────────────────── */
+function resetApp() {
+    profile = null; stepIdx = 0; answers = [];
+    showScreen('screen-welcome');
+}
+
+/* ── 9. GESTION DES ÉCRANS ──────────────────────────────────────── */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const t = document.getElementById(id);
+    if (t) { t.classList.add('active'); t.setAttribute('tabindex', '-1'); t.focus(); }
+}
+
+/* ── 10. STOCKAGE ───────────────────────────────────────────────── */
+const KEY = 'design_sante_v1';
+function loadData()    { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { return []; } }
+function saveData(arr) { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch(e) {} }
+
+/* ── 11. RENDU ADMIN ────────────────────────────────────────────── */
+function renderAdmin() {
+    if (!document.getElementById('admin-panel')) return;
+    const data = loadData();
+    document.getElementById('stat-total').textContent = data.length;
+    document.getElementById('stat-pro').textContent   = data.filter(d => d.profile === 'pro').length;
+    document.getElementById('stat-stud').textContent  = data.filter(d => d.profile === 'student').length;
+    document.getElementById('stat-pat').textContent   = data.filter(d => d.profile === 'patient').length;
+
+    const tbody = document.getElementById('admin-tbody');
+    if (!tbody) return;
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucune réponse pour l\'instant.</td></tr>';
+        return;
+    }
+    const lbl = { pro:'Professionnel·le', student:'Étudiant·e', patient:'Patient·e' };
+    tbody.innerHTML = data.map(r => {
+        const preview = Object.values(r.answers).filter(v => v && v.length > 2).slice(2,5).join(' · ').substring(0,100);
+        return `<tr>
+            <td style="color:var(--jade);font-weight:600">${r.id}</td>
+            <td style="white-space:nowrap">${r.date}</td>
+            <td>${lbl[r.profile] || r.profile}</td>
+            <td>${r.meta}</td>
+            <td>${preview}…</td>
+        </tr>`;
+    }).join('');
+}
+
+/* ── 12. EXPORTS ────────────────────────────────────────────────── */
+function esc(v)  { return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
+function today() { return new Date().toISOString().slice(0, 10); }
+function dl(content, name, mime) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = name; a.click();
+}
+
+function exportCSV() {
+    const data = loadData();
+    if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+    const ansKeys = data[0].answers ? Object.keys(data[0].answers) : [];
+    const headers = ['ID','Date','Profil','Meta', ...ansKeys];
+    const rows = data.map(r =>
+        [r.id, r.date, r.profile, r.meta, ...ansKeys.map(k => r.answers?.[k] ?? '')].map(esc).join(';')
+    );
+    dl('\uFEFF' + headers.map(esc).join(';') + '\n' + rows.join('\n'),
+       'DesignSante_' + today() + '.csv', 'text/csv;charset=utf-8');
+}
+
+function exportJSON() {
+    const data = loadData();
+    if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+    dl(JSON.stringify(data, null, 2), 'DesignSante_' + today() + '.json', 'application/json');
+}
+
+function clearData() {
+    if (!confirm('Supprimer toutes les données locales ? Action irréversible.')) return;
+    localStorage.removeItem(KEY);
+    renderAdmin();
+}
+
+/* ── ESPACE CHERCHEUR ───────────────────────────────────────────── */
+const RESEARCHER_PWD = 'CBD2026'; // ← Modifiez ce code si besoin
+
+function openResearcher() {
+    const m = document.getElementById('researcher-login');
+    m.style.display = 'flex';
+    document.getElementById('researcher-err').style.display = 'none';
+    setTimeout(() => document.getElementById('researcher-pwd').focus(), 50);
+}
+function closeLogin() {
+    document.getElementById('researcher-login').style.display = 'none';
+    document.getElementById('researcher-pwd').value = '';
+    document.getElementById('researcher-err').style.display = 'none';
+}
+function closeDashboard() {
+    document.getElementById('researcher-dashboard').style.display = 'none';
+}
+function checkResearcher() {
+    const val = document.getElementById('researcher-pwd').value.trim();
+    if (val === RESEARCHER_PWD) {
+        closeLogin();
+        openDashboard();
+    } else {
+        document.getElementById('researcher-err').style.display = 'block';
+        document.getElementById('researcher-pwd').value = '';
+        document.getElementById('researcher-pwd').focus();
+    }
+}
+function openDashboard() {
+    const dash = document.getElementById('researcher-dashboard');
+    dash.style.display = 'block';
+    renderDashboard();
+}
+function renderDashboard() {
+    const data = loadData();
+    document.getElementById('dash-total').textContent = data.length;
+    document.getElementById('dash-pro').textContent   = data.filter(d => d.profile === 'pro').length;
+    document.getElementById('dash-stud').textContent  = data.filter(d => d.profile === 'student').length;
+    document.getElementById('dash-pat').textContent   = data.filter(d => d.profile === 'patient').length;
+
+    const wrap = document.getElementById('dash-table-wrap');
+    if (!data.length) {
+        wrap.innerHTML = '<p style="font-size:.84rem;color:var(--text-muted);padding:12px 0;text-align:center;">Aucune réponse enregistrée localement.</p>';
+        return;
+    }
+    const lbl = { pro:'Pro', student:'Étudiant·e', patient:'Patient·e' };
+    const rows = data.map(r => {
+        const preview = Object.values(r.answers).filter(v => v && v.length > 2).slice(0,3).join(' · ').substring(0,80);
+        return `<tr>
+            <td style="color:var(--jade);font-weight:600;white-space:nowrap">${r.id}</td>
+            <td style="white-space:nowrap;color:var(--text-soft)">${r.date}</td>
+            <td style="color:var(--amber)">${lbl[r.profile]||r.profile}</td>
+            <td style="color:var(--text-soft);font-size:.76rem">${r.meta}</td>
+            <td style="color:var(--text-muted);font-size:.75rem;max-width:140px;word-break:break-word">${preview}…</td>
+        </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+        <thead><tr>
+            <th style="background:rgba(45,212,160,.08);color:var(--jade);padding:9px 12px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;">ID</th>
+            <th style="background:rgba(45,212,160,.08);color:var(--jade);padding:9px 12px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;">Date</th>
+            <th style="background:rgba(45,212,160,.08);color:var(--jade);padding:9px 12px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;">Profil</th>
+            <th style="background:rgba(45,212,160,.08);color:var(--jade);padding:9px 12px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;">Détail</th>
+            <th style="background:rgba(45,212,160,.08);color:var(--jade);padding:9px 12px;text-align:left;font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;">Aperçu</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+function dashExportCSV() { exportCSV(); }
+function dashExportJSON() { exportJSON(); }
+function dashClearData() {
+    if (!confirm('Supprimer toutes les données locales ? Irréversible.')) return;
+    localStorage.removeItem(KEY);
+    renderDashboard();
+}
+
+// Fermer login en cliquant l'arrière-plan
+document.getElementById('researcher-login').addEventListener('click', function(e) {
+    if (e.target === this) closeLogin();
+});
+
+
+(function initShare() {
+    const url = window.location.href.split('?')[0];
+    const container = document.getElementById('qr-container');
+    if (container) {
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(url) + '&bgcolor=ffffff&color=0D1117&margin=2';
+        const img = document.createElement('img');
+        img.src = qrUrl; img.width = 160; img.height = 160;
+        img.alt = 'QR code'; img.style.cssText = 'border-radius:4px;display:block;';
+        img.onerror = function() { container.innerHTML = '<p style="font-size:.75rem;color:#666;padding:8px;word-break:break-all;">' + url + '</p>'; };
+        container.appendChild(img);
+    }
+    const msg = encodeURIComponent('Je te partage ce questionnaire sur le design inclusif en santé 🏥 Ça prend 3 minutes → ' + url);
+    const wa = document.getElementById('btn-whatsapp');
+    if (wa) wa.href = 'https://wa.me/?text=' + msg;
+    const sms = document.getElementById('btn-sms');
+    if (sms) sms.href = 'mailto:?subject=Design%20%26%20Santé%20—%20Questionnaire&body=' + msg;
+})();
+
+function copyLink() {
+    const url = window.location.href.split('?')[0];
+    navigator.clipboard.writeText(url).then(() => {
+        const el = document.getElementById('share-copied');
+        const btn = document.getElementById('btn-copy');
+        if (el) { el.style.display = 'block'; setTimeout(() => el.style.display='none', 2500); }
+        if (btn) { const lbl = btn.querySelector('.share-lbl'); if(lbl){lbl.textContent='Copié !'; setTimeout(()=>lbl.textContent='Copier le lien',2500);} }
+    }).catch(() => prompt('Copiez ce lien :', url));
+}
+</script>
+</body>
+</html>
